@@ -115,7 +115,7 @@ function M.setup()
 	  use {
       "kyazdani42/nvim-tree.lua",
       config = function()
-         require("config.nvim-tree").setup()
+         require("config.nvimtree").setup()
        end,
     }
 	  use "goolord/alpha-nvim"
