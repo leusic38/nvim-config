@@ -72,6 +72,7 @@ function M.setup()
 	  use {
 	     "TimUntersberger/neogit",
 	   cmd = "Neogit",
+     module = { "neogit" },
 	   requires = "nvim-lua/plenary.nvim",
 	   config = function()
 	       require("config.neogit").setup()
@@ -101,8 +102,6 @@ function M.setup()
 
     --- Development ---
 
-
-
 	  use {"windwp/nvim-autopairs",
       run = "make",
       config = function()
@@ -118,7 +117,7 @@ function M.setup()
          require("config.nvimtree").setup()
        end,
     }
-	  use "goolord/alpha-nvim"
+	  use {"goolord/alpha-nvim"}
 	  use {
       "sainnhe/everforest",
       config =function()
@@ -137,6 +136,7 @@ function M.setup()
           require("config.gruvbox").setup()
         end,
     }
+    use { "leusic38/nvim-transparent" }
 	  use {
 	      "iamcco/markdown-preview.nvim",
 	      run = function()

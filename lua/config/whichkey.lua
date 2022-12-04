@@ -42,6 +42,10 @@ function M.setup()
       name = "Git",
       s = { "<cmd>Neogit<CR>", "Status" },
     },
+    t = {
+      name = "Transparency",
+      t = { "<cmd>TransparentToggle<cr>", "Toogle" }
+    }
   }
 
   whichkey.setup(conf)
