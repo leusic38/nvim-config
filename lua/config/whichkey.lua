@@ -30,7 +30,7 @@ function M.setup()
     },
 
     z = {
-      name = "Packer",
+      name = "System",
       c = { "<cmd>PackerCompile<cr>", "Compile" },
       i = { "<cmd>PackerInstall<cr>", "Install" },
       s = { "<cmd>PackerSync<cr>", "Sync" },
@@ -41,6 +41,8 @@ function M.setup()
     g = {
       name = "Git",
       s = { "<cmd>Neogit<CR>", "Status" },
+      d = { "<cmd>DiffviewOpen<cr>", "Diff View Open" },
+      D = { "<cmd>DiffviewClose<cr>", "Diff View Close" },
     },
     t = {
       name = "Transparency",

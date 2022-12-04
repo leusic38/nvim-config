@@ -37,7 +37,6 @@ local function packer_init()
 	end
 	end
 	-- Have packer use a popup window
-	
 	-- Load plugins lua path
 --	  local lua_path = function(name)
 --	    return string.format("require'config.%s'", name)
