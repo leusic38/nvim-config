@@ -1,0 +1,33 @@
+{
+  // Configuration markdownlint-cli2
+  // Documentation: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+  "config": {
+    // MD013: Line length - Désactivé (trop strict pour tableaux, URLs, code)
+    "MD013": false,
+
+    // MD033: Inline HTML - Autorisé (utile pour certains cas)
+    "MD033": false,
+
+    // MD041: First line in file should be a top level heading - Optionnel
+    "MD041": false,
+
+    // MD024: Multiple headings with the same content - Autorisé avec différents niveaux
+    "MD024": {
+      "siblings_only": true
+    },
+
+    // MD046: Code block style - Cohérent mais flexible
+    "MD046": {
+      "style": "consistent"
+    }
+  },
+
+  // Fichiers à ignorer
+  "ignores": [
+    "node_modules/",
+    ".git/",
+    "dist/",
+    "build/"
+  ]
+}
