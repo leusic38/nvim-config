@@ -31,7 +31,10 @@ local function set_action_maps(buf)
   local function map(lhs, fn)
     vim.keymap.set("n", lhs, fn, { buffer = buf, nowait = true, silent = true })
   end
-  map("<localleader>v", function() finish_current(verify.check(cur.exo, engine.buf(), engine.captured())) end)
+  map("<localleader>v", function()
+    if not cur or cur.done then return end
+    finish_current(verify.check(cur.exo, engine.buf(), engine.captured()))
+  end)
   map("<localleader>q", function() M.stop() end)
   map("<localleader>s", function() if cur then session.feedback(cur.exo, { passed = false, technique = false }) end end)
   map("<localleader>h", function() if cur then session.render(cur.exo, true) end end)

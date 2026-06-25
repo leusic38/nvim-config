@@ -65,10 +65,16 @@ function M.load()
 end
 
 function M.save(data)
-  local fd = io.open(path(), "w")
-  if not fd then return end
-  fd:write(vim.json.encode(data))
+  local fd, oerr = io.open(path(), "w")
+  if not fd then
+    vim.notify("NvimTrainer: échec écriture progrès: " .. (oerr or "?"), vim.log.levels.WARN)
+    return
+  end
+  local ok, werr = fd:write(vim.json.encode(data))
   fd:close()
+  if not ok then
+    vim.notify("NvimTrainer: échec écriture progrès: " .. (werr or "?"), vim.log.levels.WARN)
+  end
 end
 
 -- Convenience used at runtime: load, record with os.time(), save.
