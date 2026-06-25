@@ -167,6 +167,31 @@
 
 ---
 
+## 🏋️ NvimTrainer (entraînement)
+
+> ⚠️ Note : `<leader>tn`/`<leader>tN` étant déjà pris (test le plus proche), les
+> raccourcis du trainer utilisent `<leader>tx`/`<leader>tX`.
+
+| Raccourci      | Action                  | Description                                    |
+| -------------- | ----------------------- | ---------------------------------------------- |
+| `<leader>tx`   | **Démarrer trainer**    | Lance une session d'exercices nvim             |
+| `<leader>tX`   | **Stats trainer**       | Affiche progrès (vus, réussis, points faibles) |
+
+Pendant une session (dans le buffer scratch, `localleader` = `\` par défaut) :
+
+| Raccourci         | Action            |
+| ----------------- | ----------------- |
+| `<localleader>v`  | Valider manuellement l'exercice courant |
+| `<localleader>n`  | Exercice suivant  |
+| `<localleader>r`  | Recommencer       |
+| `<localleader>s`  | Voir la solution  |
+| `<localleader>h`  | Voir l'indice     |
+| `<localleader>q`  | Quitter           |
+
+Commandes : `:NvimTrainerStart [motions\|textobjects\|excmd\|keymaps]`, `:NvimTrainerStop`, `:NvimTrainerStats`.
+
+---
+
 ## 🛠️ PHP Développement (Custom)
 
 ### Outils PHP

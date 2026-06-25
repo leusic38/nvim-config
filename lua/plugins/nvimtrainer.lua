@@ -6,6 +6,10 @@ return {
     dir = vim.fn.stdpath("config"),
     name = "nvimtrainer",
     event = "VeryLazy",
+    keys = {
+      { "<leader>tx", "<cmd>NvimTrainerStart<cr>", desc = "NvimTrainer: démarrer" },
+      { "<leader>tX", "<cmd>NvimTrainerStats<cr>", desc = "NvimTrainer: stats" },
+    },
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       require("nvimtrainer").setup({})
