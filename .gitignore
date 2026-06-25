@@ -6,3 +6,6 @@ debug
 foo.*
 *.log
 data
+
+# Superpowers specs (local only)
+docs/superpowers/
