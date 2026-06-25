@@ -43,7 +43,7 @@ function M.render(exo, show_hint)
     lines[#lines + 1] = "💡 " .. exo.hint
   end
   lines[#lines + 1] = ""
-  lines[#lines + 1] = "n suivant · r recommencer · s solution · h indice · q quitter"
+  lines[#lines + 1] = [[\n suivant · \r recommencer · \s solution · \h indice · \q quitter  (\v valider)]]
   set(lines)
 end
 
@@ -63,7 +63,7 @@ function M.feedback(exo, result)
     end
   end
   lines[#lines + 1] = ""
-  lines[#lines + 1] = "n suivant · r recommencer · q quitter"
+  lines[#lines + 1] = [[\n suivant · \r recommencer · \q quitter]]
   set(lines, result.passed and "DiagnosticOk" or "DiagnosticError")
 end
 
