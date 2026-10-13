@@ -86,6 +86,8 @@
 | `<Alt-j>`     | **Ligne vers bas**  | Déplacer ligne(s) vers le bas           |
 | `<Alt-k>`     | **Ligne vers haut** | Déplacer ligne(s) vers le haut          |
 | `<` / `>`     | **Indentation**     | Diminuer/augmenter indentation (Visual) |
+| `gcc`         | **Commenter ligne** | Commenter/décommenter la ligne courante |
+| `gc`          | **Commenter**       | Commenter la sélection (Visual) ou un mouvement (`gcip`, `gc3j`) |
 | `gco` / `gcO` | **Commentaire**     | Ajouter commentaire sous/au-dessus      |
 
 ---
@@ -226,6 +228,9 @@ Commandes : `:NvimTrainerStart [motions\|textobjects\|excmd\|keymaps]`, `:NvimTr
 ### Symfony Console
 
 > Majuscule `<S>` pour éviter les conflits avec les defaults LazyVim (`<leader>sr`, `<leader>ss`)
+>
+> Disponibles dans les fichiers `php`, `xml`, `yaml` et `twig` d'un projet Symfony
+> (détecté par la présence de `bin/console`).
 
 | Raccourci    | Action               | Description               |
 | ------------ | -------------------- | ------------------------- |
@@ -235,6 +240,35 @@ Commandes : `:NvimTrainerStart [motions\|textobjects\|excmd\|keymaps]`, `:NvimTr
 | `<leader>Sr` | **Debug routes**     | Afficher les routes       |
 | `<leader>Ss` | **Debug services**   | Afficher les services     |
 | `<leader>Se` | **Debug config**     | Afficher la configuration |
+
+### Symfony : config / templates → classe PHP ou template
+
+| Raccourci | Action                          | Description                                                                 |
+| --------- | ------------------------------- | --------------------------------------------------------------------------- |
+| `gd`      | **Aller à la classe**           | Depuis un FQCN dans un `services.xml` / `services.yaml` Symfony             |
+| `gd`      | **Aller au template**           | Depuis `'@Ns/….html.twig'` dans un template Twig, un YAML ou un XML Symfony |
+
+> Surcharge du `gd` LazyVim, uniquement dans les buffers `xml`/`yaml`/`twig` d'un
+> projet Symfony. Un nom de template (chaîne finissant par `.twig`) est résolu
+> sur le disque d'abord : `templates/bundles/<Ns>Bundle`, `ide-twig.json`, puis
+> le dossier du bundle (`Resources/views`, `templates`). En YAML et Twig on
+> interroge ensuite symfony-lsp (services, params, routes) ; en XML on résout
+> directement le FQCN via le PSR-4 du `composer.json`, parce que symfony-lsp
+> **n'expose aucune feature au curseur dans un fichier XML** (le XML est indexé
+> comme cible de navigation seulement). Si rien ne matche, on retombe sur le `gd`
+> standard — en Twig, c'est twiggy (blocks, macros, templates des bundles vendor).
+
+### Symfony Language Tools (index)
+
+> L'index runtime (dump du conteneur DI via `bin/console`) alimente la navigation
+> YAML, les références et les diagnostics. Ces raccourcis permettent de le
+> consulter et de le relancer.
+
+| Raccourci    | Action                      | Description                                        |
+| ------------ | --------------------------- | -------------------------------------------------- |
+| `<leader>Si` | **Statut de l'index**       | Racines détectées, trust, état source/runtime      |
+| `<leader>SR` | **Rafraîchir l'index**      | Relance le dump du conteneur DI                    |
+| `<leader>SE` | **Changer d'environnement** | Réindexe dans un autre env Symfony (`dev`, `test`) |
 
 ### Composer
 
@@ -289,10 +323,18 @@ Commandes : `:NvimTrainerStart [motions\|textobjects\|excmd\|keymaps]`, `:NvimTr
 | `<leader>Du` | **Toggle DB UI**        | Ouvrir/fermer l'interface DB          |
 | `<leader>Da` | **Ajouter connexion**   | Ajouter une connexion à la DB         |
 | `<leader>Df` | **Trouver buffer**      | Trouver un buffer SQL lié à la DB     |
+| `<leader>Dr` | **Renommer buffer**     | Renommer le buffer de requête courant |
+| `<leader>Dq` | **Info dernière requête** | Durée / détails de la dernière requête |
 
-**Config par projet** : créer `.nvim/dadbod.lua` pour les connexions du projet :
+**Dans le drawer DBUI** : `o`/`<CR>` ouvrir, `R` rafraîchir, `d` supprimer, `A` ajouter connexion, `?` aide.
+**Dans un buffer SQL** : `<leader>S` exécute la requête (ou la sélection en visuel), `<leader>W` sauvegarde la requête.
+**Fenêtre de résultat** : s'ouvre sur 50 % de la hauteur, sans retour à la ligne. `<C-w>_` l'agrandit au maximum, `<C-w>=` rééquilibre, `<C-w>o` la garde seule, `zh`/`zl` défilent horizontalement.
+
+**Connexions** : reprises automatiquement de DBeaver (`~/.local/share/DBeaverData/workspace6/General/.dbeaver`, mots de passe déchiffrés à la volée). Les connexions `Prod*` sont marquées `[RO]` et ouvrent des transactions en lecture seule.
+
+**Config par projet** : créer `.nvim/dadbod.lua` pour ajouter des connexions du projet :
 ```lua
-return { dbs = { { name = "local", url = "mysql://root:@127.0.0.1/mydb" } } }
+return { dbs = { { name = "local", url = "postgresql://user:pass@127.0.0.1:5432/mydb" } } }
 ```
 
 ---

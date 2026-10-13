@@ -40,12 +40,14 @@ This is a personal Neovim configuration built on top of LazyVim with specialized
 
 - **LazyVim Base**: Built on LazyVim starter template with standard conventions
 - **Plugin System**: Uses lazy.nvim for plugin management with spec-based configuration
-- **Custom Extensions**: Six main areas of customization:
+- **Custom Extensions**: Main areas of customization:
   - PHP development tooling (lua/plugins/php.lua)
   - JavaScript/TypeScript/Vue development (lua/plugins/javascript.lua)
   - Terraform infrastructure as code (lua/plugins/terraform.lua)
   - Kotlin development (lua/plugins/kotlin.lua)
   - AI integration with Claude (lua/plugins/ai.lua)
+  - XML tooling for Symfony config files (lua/plugins/xml.lua)
+  - Twig templates (lua/plugins/twig.lua)
   - File explorer replacement (lua/plugins/explorer.lua)
   - Persistent floating terminal (lua/plugins/terminal.lua)
 
@@ -53,6 +55,8 @@ This is a personal Neovim configuration built on top of LazyVim with specialized
 
 **PHP Development Stack**:
 - Intelephense LSP (configured as primary PHP LSP via `vim.g.lazyvim_php_lsp = "intelephense"`)
+- Symfony Language Tools (`symfony-lsp`) as a second LSP alongside Intelephense, server config in `lsp/symfony_lsp.lua` (activates only on real Symfony apps: `composer.json` + `bin/console`/`config/bundles.php`)
+- Symfony runtime index (the source of config→class navigation in XML/YAML) auto-trusts projects that have a `.nvim/` directory, and derives `symfonyLsp.phpCommand`/`containerProjectRoot` from the project's `.nvim/docker.lua` — see `lsp/symfony_lsp.lua`
 - PHP CS Fixer integration via conform.nvim with hardcoded config path `/home/manu/Projects/lama/.php-cs-fixer.dist.php`
 - PHPStan analysis via nvim-lint with JSON output parsing
 - PHPUnit testing via neotest-phpunit adapter
@@ -60,13 +64,33 @@ This is a personal Neovim configuration built on top of LazyVim with specialized
 - PHPActor for advanced refactoring and class generation
 
 **JavaScript/TypeScript/Vue Development Stack**:
-- ESLint integration via nvim-lint for code quality
-- Prettier formatting via conform.nvim
-- TypeScript LSP with enhanced tools (TSTools)
+- ESLint via the `eslint` LSP only (diagnostics + `EslintFixAll` on save); no nvim-lint/eslint_d to avoid duplicate diagnostics
+- Prettier formatting via conform.nvim, for JS/TS/Vue/CSS/SCSS/HTML **only** when the project ships a Prettier config (no LSP format fallback), so projects without Prettier (e.g. lama) keep their ESLint style
+- TypeScript via `vtsls` + Vue via `vue_ls` (LazyVim typescript/vue extras); `<leader>jl*` keymaps are vtsls code actions
 - Jest/Vitest testing via neotest adapters
 - Node.js debugging via nvim-dap
 - Package.json management with package-info.nvim
 - Vue.js development with specialized LSP support
+
+**Symfony Config Files (XML/YAML)**:
+- `symfony_lsp` attaches to `xml`, `yaml`, `twig` and `env` buffers, but **exposes no cursor features in XML files** — upstream indexes XML service definitions as a navigation *target* only (see `docs/features/dependency-injection.rst` in symfony/language-tools). Goto-definition from a `services.xml` will never come from the server
+- `lua/config/symfony-goto.lua` fills that gap: it resolves the FQCN under the cursor through the `composer.json` PSR-4 map and jumps to the class declaration. No server, no index
+- `gd` is overridden in `xml`/`yaml`/`twig` buffers of Symfony projects — a `.twig` template name is resolved on disk first, then YAML/Twig ask `symfony_lsp` (services, params, routes), XML goes straight to PSR-4, and both fall back to the standard `gd`. It is registered through the **Snacks keymap registry**, not `vim.keymap.set`: LazyVim re-applies its own `gd` on every LspAttach (100 ms debounce), so a plain buffer-local map would always lose
+- lemminx (lua/plugins/xml.lua) validates `Resources/config/*.xml` against the Symfony XSD declared in `xsi:schemaLocation` and completes tags/attributes
+- yaml-language-server via the LazyVim `lang.yaml` extra, alongside `symfony_lsp` on the same buffers
+- Symfony keymaps (`<leader>S*`) load on `php,xml,yaml,twig` in Symfony projects — see `lua/config/symfony-keymaps.lua`
+
+**Twig Templates**:
+- Treesitter `twig` parser, with HTML injected into template content
+- twiggy-language-server (lspconfig `twiggy_language_server`, overrides in `lsp/twiggy_language_server.lua`), alongside `symfony_lsp` on twig buffers. It reads the app's Twig environment (functions, filters, globals, template namespaces) and routes through `bin/console debug:twig` / `debug:router`
+- Dockerized projects: `twiggy.phpExecutable` points at a per-project shim generated in `stdpath("cache")/twiggy/` from `.nvim/docker.lua`. The shim delegates to `bin/twiggy-php`, which runs project scripts (`bin/console`) in the container with host↔container path translation and keeps host PHP for twiggy's own `phpUtils` scripts. The shim is set in `before_init`, **not** `on_init`: Neovim pushes `didChangeConfiguration` before `on_init`, and twiggy loads the environment on that first push
+- Twig-CS-Fixer (Mason, or the project's `vendor/bin/twig-cs-fixer`) runs as an nvim-lint linter everywhere, but as a conform formatter **only** when the project has `.twig-cs-fixer.php`/`.twig-cs-fixer.dist.php`, so format-on-save never rewrites templates that don't follow that standard. twiggy's own twig-cs-fixer diagnostics are disabled to avoid duplicates
+- `gd` on a template name (`'@Ns/….html.twig'`) in twig/yaml/xml resolves statically via `lua/config/symfony-goto.lua` (`templates/bundles/<Ns>Bundle`, `ide-twig.json`, bundle dir), then falls back to the LSPs
+
+**Database / PostgreSQL (DBeaver-like)**:
+- LazyVim `lang.sql` extra: vim-dadbod + dadbod-ui + dadbod-completion (blink), sqlfluff lint/format forced to the `postgres` dialect in `lua/plugins/database.lua`
+- Connections are read from DBeaver's store by `lua/config/dbeaver.lua` (passwords decrypted at runtime via `openssl`, never written to disk), merged with the project's `.nvim/dadbod.lua`; loaded only when DBUI is first opened
+- Connections named `Prod*` get `[RO]` and `default_transaction_read_only=on` through the libpq `options` URL param
 
 **Terraform Infrastructure Stack**:
 - Terraform LSP (terraformls) for syntax and validation
@@ -144,6 +168,9 @@ Auto-linting and auto-formatting on save are enabled for all supported file type
 
 ### PHP Dependencies
 - PHP CS Fixer must be available globally or in PATH
+- Symfony Language Tools installed via Mason (`symfony-lsp`); runtime indexing needs vendor installed and a PHP command matching the app's Symfony version (dockerized projects: declare `service` + `container_root` in the project's `.nvim/docker.lua`, which also gates auto-trust)
+- lemminx and yaml-language-server installed via Mason for XML/YAML schema validation
+- twiggy-language-server and twig-cs-fixer installed via Mason (twig-cs-fixer needs host PHP)
 - PHPStan must be available in PATH
 - XDebug requires Node.js for the debug adapter
 - PHPUnit expected at `vendor/bin/phpunit` for project-specific testing
