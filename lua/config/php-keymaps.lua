@@ -28,13 +28,8 @@ map("n", "<leader>pv", "i<?php<cr><cr>declare(strict_types=1);<cr><cr>", vim.tbl
 map("n", "<leader>pc", "iclass <cr>{<cr><cr>}<esc>2k$F a", vim.tbl_extend("force", buf, { desc = "PHP: Class template" }))
 map("n", "<leader>pf", "ipublic function ()<cr>{<cr><cr>}<esc>2k$F)i", vim.tbl_extend("force", buf, { desc = "PHP: Function template" }))
 
--- Symfony Console shortcuts (buffer-local pour éviter d'écraser <leader>s* de LazyVim)
-map("n", "<leader>Sc", "<cmd>!php bin/console ", vim.tbl_extend("force", buf, { desc = "Symfony: Console command" }))
-map("n", "<leader>Sm", "<cmd>!php bin/console make:", vim.tbl_extend("force", buf, { desc = "Symfony: Make command" }))
-map("n", "<leader>Sd", "<cmd>!php bin/console doctrine:", vim.tbl_extend("force", buf, { desc = "Symfony: Doctrine command" }))
-map("n", "<leader>Sr", "<cmd>!php bin/console debug:router<cr>", vim.tbl_extend("force", buf, { desc = "Symfony: Debug routes" }))
-map("n", "<leader>Ss", "<cmd>!php bin/console debug:container<cr>", vim.tbl_extend("force", buf, { desc = "Symfony: Debug services" }))
-map("n", "<leader>Se", "<cmd>!php bin/console debug:config<cr>", vim.tbl_extend("force", buf, { desc = "Symfony: Debug config" }))
+-- Symfony Console : déplacé dans config/symfony-keymaps.lua (chargé aussi sur
+-- les fichiers de config xml/yaml/twig d'un projet Symfony).
 
 -- Composer shortcuts (buffer-local pour éviter d'écraser <leader>c* de LazyVim)
 map("n", "<leader>Cu", "<cmd>!composer update<cr>", vim.tbl_extend("force", buf, { desc = "Composer: update" }))

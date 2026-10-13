@@ -158,6 +158,20 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- Load Symfony keymaps for PHP *and* config files. Les XML/YAML de config sont
+-- concernés au premier chef : c'est de là qu'on interroge l'index du conteneur.
+-- Garde `get_framework` pour ne pas polluer les yaml/xml non-Symfony (Ansible,
+-- Terraform, docker-compose…) avec le namespace <leader>S.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "php", "xml", "yaml", "twig" },
+  callback = function(args)
+    if get_framework(args.buf) ~= "symfony" then
+      return
+    end
+    require("config.symfony-keymaps")()
+  end,
+})
+
 -- Load Terraform-specific keymaps and settings for Terraform files
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "terraform", "tf", "hcl" },
