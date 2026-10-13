@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Exécutable PHP pour twiggy-language-server sur un projet dockerisé.
+#
+# Usage : twiggy-php HOST_ROOT SERVICE CONTAINER_ROOT [arguments php…]
+#
+# twiggy n'accepte qu'un chemin d'exécutable (`twiggy.phpExecutable`, sans
+# arguments) et l'appelle sous la forme `php -d display_errors=stderr SCRIPT …`
+# depuis la racine du workspace. Deux familles de SCRIPT :
+#   * `./bin/console` ou un fichier du projet (`vendor/bin/…`) : doit tourner
+#     dans le conteneur, où vivent la bonne version de PHP et l'environnement
+#     de l'appli. Les chemins hôte des arguments sont traduits en chemins
+#     conteneur, et inversement dans la sortie (les `LoaderPaths` de
+#     `debug:twig` servent à résoudre les templates côté hôte).
+#   * les utilitaires embarqués par twiggy (`…/phpUtils/*.php`, installés par
+#     Mason sur l'hôte) : invisibles depuis le conteneur, ils tournent avec le
+#     PHP de l'hôte. Ils ne font que charger `vendor/autoload.php` et de la
+#     réflexion.
+#
+# Le shim par projet qui fournit les trois premiers arguments est généré par
+# lsp/twiggy_language_server.lua à partir de `.nvim/docker.lua`.
+
+set -u
+
+host_root=$1
+service=$2
+container_root=$3
+shift 3
+
+# Le script est le premier argument qui n'est ni une option ni la valeur d'un
+# `-d`.
+script=""
+skip_next=0
+for arg in "$@"; do
+  if [ "$skip_next" = 1 ]; then
+    skip_next=0
+    continue
+  fi
+  case "$arg" in
+    -d) skip_next=1 ;;
+    -*) ;;
+    *)
+      script=$arg
+      break
+      ;;
+  esac
+done
+
+case "$script" in
+  /*) in_project=0 ;;
+  *) in_project=1 ;;
+esac
+case "$script" in
+  "$host_root"/*) in_project=1 ;;
+esac
+
+if [ "$in_project" = 0 ]; then
+  exec php "$@"
+fi
+
+args=()
+for arg in "$@"; do
+  args+=("${arg//"$host_root"/"$container_root"}")
+done
+
+# Les chemins peuvent sortir échappés (`\/var\/app`) quand PHP encode du JSON
+# sans JSON_UNESCAPED_SLASHES.
+escape_json() { printf '%s' "$1" | sed 's#/#\\\\/#g'; }
+
+docker compose exec -T -w "$container_root" "$service" php "${args[@]}" |
+  sed -e "s#$container_root#$host_root#g" \
+    -e "s#$(escape_json "$container_root")#$(escape_json "$host_root")#g"
+exit "${PIPESTATUS[0]}"
