@@ -1,57 +1,25 @@
 -- JavaScript/TypeScript/Vue development configuration
 return {
-  -- TypeScript LSP and tools
+  -- TypeScript LSP: vtsls (from the LazyVim typescript/vue extras) with our inlay hints
   {
-    "pmizio/typescript-tools.nvim",
-    dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-    opts = {
-      settings = {
-        -- TypeScript server configuration
-        typescript = {
-          inlayHints = {
-            includeInlayParameterNameHints = "literal",
-            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-            includeInlayFunctionParameterTypeHints = true,
-            includeInlayVariableTypeHints = false,
-            includeInlayPropertyDeclarationTypeHints = true,
-            includeInlayFunctionLikeReturnTypeHints = true,
-            includeInlayEnumMemberValueHints = true,
-          },
-        },
-        javascript = {
-          inlayHints = {
-            includeInlayParameterNameHints = "all",
-            includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-            includeInlayFunctionParameterTypeHints = true,
-            includeInlayVariableTypeHints = false,
-            includeInlayPropertyDeclarationTypeHints = true,
-            includeInlayFunctionLikeReturnTypeHints = true,
-            includeInlayEnumMemberValueHints = true,
-          },
-        },
-      },
-    },
-  },
+    "neovim/nvim-lspconfig",
+    opts = function(_, opts)
+      local function inlay_hints(parameter_names)
+        return {
+          parameterNames = { enabled = parameter_names, suppressWhenArgumentMatchesName = true },
+          parameterTypes = { enabled = true },
+          variableTypes = { enabled = false },
+          propertyDeclarationTypes = { enabled = true },
+          functionLikeReturnTypes = { enabled = true },
+          enumMemberValues = { enabled = true },
+        }
+      end
 
-  -- Vue.js support
-  {
-    "vuejs/language-tools",
-    ft = { "vue" },
-    dependencies = {
-      "neovim/nvim-lspconfig",
-      "pmizio/typescript-tools.nvim",
-    },
-    config = function()
-      require("lspconfig").volar.setup({
-        -- Configuration spécifique à Vue
-        filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" },
-        init_options = {
-          vue = {
-            hybridMode = false,
-          },
-          typescript = {
-            tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
-          },
+      opts.servers = opts.servers or {}
+      opts.servers.vtsls = vim.tbl_deep_extend("force", opts.servers.vtsls or {}, {
+        settings = {
+          typescript = { inlayHints = inlay_hints("literals") },
+          javascript = { inlayHints = inlay_hints("all") },
         },
       })
     end,
@@ -83,14 +51,22 @@ return {
     "stevearc/conform.nvim",
     opts = function(_, opts)
       opts.formatters_by_ft = opts.formatters_by_ft or {}
-      opts.formatters_by_ft.javascript = { "prettier" }
-      opts.formatters_by_ft.typescript = { "prettier" }
-      opts.formatters_by_ft.javascriptreact = { "prettier" }
-      opts.formatters_by_ft.typescriptreact = { "prettier" }
-      opts.formatters_by_ft.vue = { "prettier" }
-      opts.formatters_by_ft.css = { "prettier" }
-      opts.formatters_by_ft.scss = { "prettier" }
-      opts.formatters_by_ft.html = { "prettier" }
+      -- Code filetypes: Prettier only when the project ships a Prettier config,
+      -- and never an LSP fallback (volar/tsserver would impose their own style).
+      -- Projects without Prettier (e.g. lama) are then formatted by ESLint only,
+      -- through the EslintFixAll BufWritePre above — same result as PhpStorm.
+      for _, ft in ipairs({
+        "javascript",
+        "typescript",
+        "javascriptreact",
+        "typescriptreact",
+        "vue",
+        "css",
+        "scss",
+        "html",
+      }) do
+        opts.formatters_by_ft[ft] = { "prettier", lsp_format = "never" }
+      end
       opts.formatters_by_ft.json = { "prettier" }
       opts.formatters_by_ft.jsonc = { "prettier" }
       opts.formatters_by_ft.yaml = { "prettier" }
@@ -98,41 +74,95 @@ return {
 
       -- Configuration Prettier
       opts.formatters = opts.formatters or {}
+
+      -- YAML : 2 espaces, quoi que dise le .prettierrc du projet (pendant de
+      -- l'override editorconfig dans lua/config/options.lua). Pour les autres
+      -- filetypes on garde `prefer-file` : la config du projet fait loi.
+      -- Sur YAML on bascule en `cli-override` — le .prettierrc est toujours lu
+      -- et appliqué, seul tabWidth/useTabs est écrasé par la ligne de commande.
+      local function prettier_args(_, ctx)
+        local args = { "--stdin-filepath", "$FILENAME" }
+        if vim.bo[ctx.buf].filetype:match("^yaml") then
+          vim.list_extend(args, {
+            "--config-precedence",
+            "cli-override",
+            "--tab-width",
+            "2",
+            "--use-tabs",
+            "false",
+          })
+        else
+          vim.list_extend(args, { "--config-precedence", "prefer-file" })
+        end
+        return args
+      end
+
+      local prettier_project_only = {
+        javascript = true,
+        typescript = true,
+        javascriptreact = true,
+        typescriptreact = true,
+        vue = true,
+        css = true,
+        scss = true,
+        html = true,
+      }
+      local prettier_config_files = {
+        ".prettierrc",
+        ".prettierrc.json",
+        ".prettierrc.yml",
+        ".prettierrc.yaml",
+        ".prettierrc.json5",
+        ".prettierrc.js",
+        ".prettierrc.cjs",
+        ".prettierrc.mjs",
+        ".prettierrc.ts",
+        ".prettierrc.toml",
+        "prettier.config.js",
+        "prettier.config.cjs",
+        "prettier.config.mjs",
+        "prettier.config.ts",
+      }
+
+      local function has_prettier_config(dirname)
+        if vim.fs.find(prettier_config_files, { path = dirname, upward = true })[1] then
+          return true
+        end
+        local package_json = vim.fs.find("package.json", { path = dirname, upward = true })[1]
+        if not package_json then
+          return false
+        end
+        local ok, content = pcall(vim.fn.readfile, package_json)
+        if not ok then
+          return false
+        end
+        local decoded_ok, decoded = pcall(vim.json.decode, table.concat(content, "\n"))
+        return decoded_ok and type(decoded) == "table" and decoded.prettier ~= nil
+      end
+
       opts.formatters.prettier = {
         command = "prettier",
-        args = {
-          "--stdin-filepath",
-          "$FILENAME",
-          "--config-precedence",
-          "prefer-file",
-        },
-        range_args = function()
-          return {
-            "--stdin-filepath",
-            "$FILENAME",
+        condition = function(_, ctx)
+          if not prettier_project_only[vim.bo[ctx.buf].filetype] then
+            return true
+          end
+          return has_prettier_config(ctx.dirname)
+        end,
+        args = prettier_args,
+        range_args = function(self, ctx)
+          local args = prettier_args(self, ctx)
+          vim.list_extend(args, {
             "--range-start",
             "$RANGE_START",
             "--range-end",
             "$RANGE_END",
-          }
+          })
+          return args
         end,
         env = {
           PRETTIER_DEFAULT_CONFIG = vim.fn.expand("~/.config/nvim/prettier.config.js"),
         },
       }
-    end,
-  },
-
-  -- Linting with nvim-lint
-  {
-    "mfussenegger/nvim-lint",
-    opts = function(_, opts)
-      opts.linters_by_ft = opts.linters_by_ft or {}
-      opts.linters_by_ft.javascript = { "eslint_d" }
-      opts.linters_by_ft.typescript = { "eslint_d" }
-      opts.linters_by_ft.javascriptreact = { "eslint_d" }
-      opts.linters_by_ft.typescriptreact = { "eslint_d" }
-      opts.linters_by_ft.vue = { "eslint_d" }
     end,
   },
 
@@ -260,15 +290,31 @@ return {
 
   -- Auto-imports and code actions
   {
-    "pmizio/typescript-tools.nvim",
-    keys = {
-      { "<leader>jlo", "<cmd>TSToolsOrganizeImports<cr>", desc = "JS: Organize imports" },
-      { "<leader>jls", "<cmd>TSToolsSortImports<cr>", desc = "JS: Sort imports" },
-      { "<leader>jlu", "<cmd>TSToolsRemoveUnusedImports<cr>", desc = "JS: Remove unused imports" },
-      { "<leader>jlg", "<cmd>TSToolsGoToSourceDefinition<cr>", desc = "JS: Go to source definition" },
-      { "<leader>jlr", "<cmd>TSToolsRenameFile<cr>", desc = "JS: Rename file" },
-      { "<leader>jla", "<cmd>TSToolsAddMissingImports<cr>", desc = "JS: Add missing imports" },
-    },
+    "neovim/nvim-lspconfig",
+    opts = function(_, opts)
+      opts.servers = opts.servers or {}
+      opts.servers.vtsls = opts.servers.vtsls or {}
+      opts.servers.vtsls.keys = opts.servers.vtsls.keys or {}
+      vim.list_extend(opts.servers.vtsls.keys, {
+        { "<leader>jlo", LazyVim.lsp.action["source.organizeImports"], desc = "JS: Organize imports" },
+        { "<leader>jls", LazyVim.lsp.action["source.sortImports"], desc = "JS: Sort imports" },
+        { "<leader>jlu", LazyVim.lsp.action["source.removeUnused.ts"], desc = "JS: Remove unused imports" },
+        {
+          "<leader>jlg",
+          function()
+            local params = vim.lsp.util.make_position_params(0, "utf-16")
+            LazyVim.lsp.execute({
+              command = "typescript.goToSourceDefinition",
+              arguments = { params.textDocument.uri, params.position },
+              open = true,
+            })
+          end,
+          desc = "JS: Go to source definition",
+        },
+        { "<leader>jlr", function() Snacks.rename.rename_file() end, desc = "JS: Rename file" },
+        { "<leader>jla", LazyVim.lsp.action["source.addMissingImports.ts"], desc = "JS: Add missing imports" },
+      })
+    end,
   },
 
   -- Enhanced syntax highlighting
@@ -285,7 +331,6 @@ return {
         "scss",
         "html",
         "json",
-        "jsonc",
         "jsdoc",
       })
     end,
