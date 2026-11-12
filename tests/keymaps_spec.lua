@@ -11,7 +11,12 @@ local t = require("helpers")
 -- Plugins autorisés à poser des raccourcis globaux, par mode. N'étendre que si une
 -- tâche l'exige, avec la raison en commentaire.
 local ALLOWED = {
-  ["mini.ai"] = { "o", "x" }, -- objets textuels a/i : posés par mini.ai lui-même
+  -- Objets textuels a/i et g[ / g] (aller au bord d'un objet) : posés par mini.ai lui-même.
+  ["mini.ai"] = { "n", "o", "x" },
+  -- f t F T ; , améliorés (sauts sur plusieurs lignes) : mode « char » de flash, retenu au tri.
+  ["flash.nvim"] = { "n", "o", "x" },
+  -- ( ) [ ] { } " ' ` <BS> <CR> en insertion : fermeture des paires, retenue au tri.
+  ["mini.pairs"] = { "i" },
 }
 
 local MODES = { "n", "x", "o", "i", "t" }

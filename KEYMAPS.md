@@ -100,12 +100,6 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `zw` | n | Marquer le mot comme faux | lua/manu/keymaps.lua |
 | `zug` | n | Retirer le mot du dictionnaire | lua/manu/keymaps.lua |
 
-## Treesitter
-
-| Touche | Mode | Action | Fichier |
-|--------|------|--------|---------|
-| `<C-Space>` | nx | Sélection incrémentale (nœud parent, `an` natif) | lua/manu/treesitter.lua |
-
 ## Diagnostics et listes
 
 | Touche | Mode | Action | Fichier |
@@ -119,8 +113,6 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `[w` | n | Avertissement précédent | lua/manu/lsp.lua |
 | `<leader>xl` | n | Liste locale (ouvrir/fermer) | lua/manu/lsp.lua |
 | `<leader>xq` | n | Quickfix (ouvrir/fermer) | lua/manu/lsp.lua |
-| `[q` | n | Élément quickfix précédent | lua/manu/lsp.lua |
-| `]q` | n | Élément quickfix suivant | lua/manu/lsp.lua |
 | `<leader>cm` | n | Mason | lua/manu/lsp.lua |
 | `<leader>uh` | n | Basculer les indices inline (inlay hints) | lua/manu/lsp.lua |
 
@@ -217,6 +209,81 @@ Formatage à l'enregistrement seulement si le projet a la config du formateur.
 | `<leader>gL` | n | Commits (dossier courant) | lua/manu/git.lua |
 | `<leader>gf` | n | Historique du fichier (fzf) | lua/manu/git.lua |
 | `<leader>gb` | n | Blame de la ligne | lua/manu/git.lua |
+
+## Édition (plugins)
+
+Posés par les plugins eux-mêmes (autorisés par le test) : `f` `t` `F` `T` `;` `,` (flash,
+sauts sur plusieurs lignes), objets `a…`/`i…` et `g[`/`g]` (mini.ai : `af`/`if` fonction,
+`ac` classe, `ao` bloc, `at` balise, `ad` nombre, `ae` mot, `ag` buffer, `au` appel,
+`aa` argument, `an…`/`al…` suivant/précédent), paires en insertion (mini.pairs).
+En recherche (`/`), `<C-s>` bascule les étiquettes flash.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `s` | nxo | Flash : sauter | lua/manu/editing.lua |
+| `S` | nxo | Flash : nœud Treesitter | lua/manu/editing.lua |
+| `r` | o | Flash à distance | lua/manu/editing.lua |
+| `R` | xo | Flash : recherche Treesitter | lua/manu/editing.lua |
+| `<C-Space>` | nxo | Sélection incrémentale (Treesitter ; `<C-Space>` étend, `<BS>` réduit) | lua/manu/editing.lua |
+| `<leader>sr` | nx | Rechercher et remplacer dans le projet (grug-far) | lua/manu/editing.lua |
+| `]t` | n | TODO suivant | lua/manu/editing.lua |
+| `[t` | n | TODO précédent | lua/manu/editing.lua |
+| `<leader>st` | n | TODO (fzf) | lua/manu/editing.lua |
+| `<leader>sT` | n | TODO/FIX/FIXME (fzf) | lua/manu/editing.lua |
+| `<leader>Rm` | nx | Refactoring : menu | lua/manu/editing.lua |
+| `<leader>Re` | x | Refactoring : extraire une fonction | lua/manu/editing.lua |
+| `<leader>Rf` | x | Refactoring : extraire une fonction dans un fichier | lua/manu/editing.lua |
+| `<leader>Rv` | x | Refactoring : extraire une variable | lua/manu/editing.lua |
+| `<leader>Ri` | nx | Refactoring : inliner la variable | lua/manu/editing.lua |
+| `<leader>up` | n | Basculer la fermeture auto des paires | lua/manu/editing.lua |
+
+## Trouble
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>xx` | n | Diagnostics (Trouble) | lua/manu/editing.lua |
+| `<leader>xX` | n | Diagnostics du buffer (Trouble) | lua/manu/editing.lua |
+| `<leader>cs` | n | Symboles (Trouble) | lua/manu/editing.lua |
+| `<leader>cS` | n | Références/définitions LSP (Trouble) | lua/manu/editing.lua |
+| `<leader>xL` | n | Liste locale (Trouble) | lua/manu/editing.lua |
+| `<leader>xQ` | n | Quickfix (Trouble) | lua/manu/editing.lua |
+| `<leader>xt` | n | TODO (Trouble) | lua/manu/editing.lua |
+| `<leader>xT` | n | TODO/FIX/FIXME (Trouble) | lua/manu/editing.lua |
+| `[q` | n | Élément précédent (Trouble s'il est ouvert, sinon quickfix) | lua/manu/editing.lua |
+| `]q` | n | Élément suivant (Trouble s'il est ouvert, sinon quickfix) | lua/manu/editing.lua |
+
+## Sessions
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>qs` | n | Restaurer la session (dossier) | lua/manu/editing.lua |
+| `<leader>qS` | n | Choisir une session | lua/manu/editing.lua |
+| `<leader>ql` | n | Restaurer la dernière session | lua/manu/editing.lua |
+| `<leader>qd` | n | Ne pas enregistrer la session | lua/manu/editing.lua |
+
+## IA (Claude)
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>as` | n | Claude (sidekick) du worktree : afficher/masquer | lua/manu/ai.lua |
+| `<leader>aS` | n | Sidekick : choisir une session | lua/manu/ai.lua |
+| `<leader>ad` | n | Sidekick : détacher une session | lua/manu/ai.lua |
+| `<leader>at` | nx | Claude : envoyer ceci | lua/manu/ai.lua |
+| `<leader>af` | n | Claude : envoyer le fichier | lua/manu/ai.lua |
+| `<leader>av` | x | Claude : envoyer la sélection | lua/manu/ai.lua |
+| `<leader>ai` | nx | Claude : prompts | lua/manu/ai.lua |
+| `<leader>aw` | n | Worktree : changer | lua/manu/ai.lua |
+| `<leader>aW` | n | Worktree : créer + Claude | lua/manu/ai.lua |
+| `<leader>ax` | n | Worktree : supprimer | lua/manu/ai.lua |
+| `<leader>aa` | n | Claude dans un onglet terminal | lua/manu/ai.lua |
+| `<leader>aq` | x | Envoyer la sélection à Claude (onglet) | lua/manu/ai.lua |
+| `<leader>ap` | nx | Claude expert (stacks détectées) | lua/manu/ai.lua |
+| `<leader>aep` | nx | Claude expert PHP/Symfony | lua/manu/ai.lua |
+| `<leader>aej` | nx | Claude expert JS/TS/Vue.js | lua/manu/ai.lua |
+| `<leader>aek` | nx | Claude expert Kotlin | lua/manu/ai.lua |
+| `<leader>aet` | nx | Claude expert Terraform | lua/manu/ai.lua |
+| `<leader>ar` | n | Revue de code par Claude | lua/manu/ai.lua |
+| `<leader>yc` | nx | Copier pour Claude (chemin + lignes) | lua/manu/ai.lua |
 
 ## Interface / bascules
 

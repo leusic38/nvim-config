@@ -97,8 +97,4 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Sélection incrémentale : <C-Space> démarre/étend la sélection au nœud parent (an natif).
-vim.keymap.set("n", "<C-Space>", "van", { remap = true, desc = "Sélection incrémentale (Treesitter)" })
-vim.keymap.set("x", "<C-Space>", "an", { remap = true, desc = "Étendre la sélection (Treesitter)" })
-
 return M

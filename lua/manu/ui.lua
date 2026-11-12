@@ -103,6 +103,11 @@ wk.setup({
     {
       mode = { "n", "x" },
       { "<leader><tab>", group = "onglets" },
+      { "<leader>a", group = "IA (Claude)" },
+      { "<leader>ae", group = "Claude expert" },
+      { "<leader>R", group = "refactoring" },
+      { "<leader>gh", group = "hunks" },
+      { "<leader>t", group = "terminal" },
       { "<leader>b", group = "buffers" },
       { "<leader>c", group = "code" },
       { "<leader>f", group = "fichiers" },

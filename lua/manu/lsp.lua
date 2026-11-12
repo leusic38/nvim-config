@@ -193,12 +193,6 @@ map("n", "<leader>xq", function()
     vim.notify(err, vim.log.levels.ERROR)
   end
 end, { desc = "Quickfix (ouvrir/fermer)" })
-map("n", "[q", function()
-  vim.cmd.cprev()
-end, { desc = "Élément quickfix précédent" })
-map("n", "]q", function()
-  vim.cmd.cnext()
-end, { desc = "Élément quickfix suivant" })
 
 map("n", "<leader>cm", "<cmd>Mason<cr>", { desc = "Mason" })
 map("n", "<leader>uh", function()
