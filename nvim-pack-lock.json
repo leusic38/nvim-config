@@ -112,6 +112,11 @@
       "rev": "ea18f97c58276e213736c9f0193f7aa4c690693e",
       "src": "https://github.com/ThePrimeagen/refactoring.nvim"
     },
+    "render-markdown.nvim": {
+      "rev": "640a3ec6d538bad17c328be373c7cad0293d9589",
+      "src": "https://github.com/MeanderingProgrammer/render-markdown.nvim",
+      "version": "8.0.0 - 9.0.0"
+    },
     "sidekick.nvim": {
       "rev": "53a2d3afa61e5fd2e17b270b5fa72e5493808304",
       "src": "https://github.com/folke/sidekick.nvim",

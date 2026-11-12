@@ -48,6 +48,9 @@ opt.smartindent = true
 opt.smoothscroll = true
 opt.spell = false -- activer avec <leader>us
 opt.spelllang = { "en", "fr" }
+-- Dictionnaire français absent : le télécharger sans question (sinon une invite bloque à la
+-- première ouverture d'un Markdown ou d'un message de commit, et en headless pour toujours).
+require("nvim.spellfile").config({ confirm = false })
 opt.splitbelow = true
 opt.splitkeep = "screen"
 opt.splitright = true

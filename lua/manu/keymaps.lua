@@ -236,8 +236,13 @@ end, { desc = "Raccourcis (KEYMAPS.md)" })
 map("n", "<leader>M", function()
   show_doc("MANUEL.md", " 📘 Manuel ")
 end, { desc = "Manuel (Neovim)" })
+-- Aperçu dans le navigateur (script mdview) : le fichier Markdown courant, sinon le manuel.
 map("n", "<leader>H", function()
   local path = vim.fn.stdpath("config") .. "/MANUEL.md"
+  if vim.bo.filetype == "markdown" and vim.api.nvim_buf_get_name(0) ~= "" then
+    vim.cmd("silent update") -- mdview lit le fichier sur le disque
+    path = vim.api.nvim_buf_get_name(0)
+  end
   vim.system({ "mdview", path }, { text = true }, function(res)
     if res.code ~= 0 then
       vim.schedule(function()
@@ -245,4 +250,4 @@ map("n", "<leader>H", function()
       end)
     end
   end)
-end, { desc = "Manuel (navigateur)" })
+end, { desc = "Aperçu navigateur (Markdown courant, sinon manuel)" })

@@ -300,6 +300,7 @@ En recherche (`/`), `<C-s>` bascule les étiquettes flash.
 | `<leader>ub` | n | Basculer fond sombre/clair | lua/manu/keymaps.lua |
 | `<leader>ur` | n | Redessiner / effacer la recherche | lua/manu/keymaps.lua |
 | `<leader>uI` | n | Arbre Treesitter | lua/manu/keymaps.lua |
+| `<leader>um` | n | Basculer le rendu Markdown dans le buffer | lua/manu/lang/markdown.lua |
 
 ## Documentation de la config
 
@@ -307,7 +308,7 @@ En recherche (`/`), `<C-s>` bascule les étiquettes flash.
 |--------|------|--------|---------|
 | `<leader>K` | n | Raccourcis (ce fichier, en flottant) | lua/manu/keymaps.lua |
 | `<leader>M` | n | Manuel (flottant) | lua/manu/keymaps.lua |
-| `<leader>H` | n | Manuel (navigateur, via mdview) | lua/manu/keymaps.lua |
+| `<leader>H` | n | Aperçu navigateur (mdview) : le fichier Markdown courant, sinon le manuel | lua/manu/keymaps.lua |
 | `<leader>?` | n | Raccourcis du buffer (which-key) | lua/manu/ui.lua |
 
 ## Code / LSP (buffer)

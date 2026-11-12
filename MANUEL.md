@@ -69,7 +69,8 @@ du dossier. `:Accueil` la rouvre à tout moment.
 - **`<leader>sk`** : recherche floue dans *tous* les raccourcis actifs.
 - **`<leader>K`** : `KEYMAPS.md` en lecture seule, `q` ou `Échap` pour fermer.
 - **`<leader>M`** : ce manuel en flottant (`/` pour chercher une section).
-- **`<leader>H`** : ce manuel dans le navigateur (via `mdview`).
+- **`<leader>H`** : ce manuel dans le navigateur (via `mdview`) ; sur un fichier
+  Markdown, c'est ce fichier qui s'ouvre.
 - **`<leader>sh`** : l'aide de Neovim.
 
 ### Recherche (fzf-lua)
@@ -208,6 +209,14 @@ recherche et le remplacement, l'aperçu se met à jour, puis appliquer depuis le
 
 `]t` / `[t` parcourent les `TODO:`, `FIX:`, `NOTE:`… ; `<leader>st` les liste (fzf),
 `<leader>xt` dans Trouble.
+
+### Markdown
+
+Les fichiers `.md` s'affichent **mis en forme dans le buffer** (titres, listes, tableaux,
+cases à cocher, blocs de code) ; la ligne où se trouve le curseur reste brute pour
+l'édition. `<leader>um` coupe/rétablit ce rendu. `<leader>H` ouvre le fichier dans le
+**navigateur** (via `mdview`, après l'avoir enregistré) ; F5 dans le navigateur après un
+nouveau `<leader>H` montre la nouvelle version.
 
 ### Orthographe (FR + EN)
 
