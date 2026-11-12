@@ -97,6 +97,30 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `zw` | n | Marquer le mot comme faux | lua/manu/keymaps.lua |
 | `zug` | n | Retirer le mot du dictionnaire | lua/manu/keymaps.lua |
 
+## Treesitter
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<C-Space>` | nx | Sélection incrémentale (nœud parent, `an` natif) | lua/manu/treesitter.lua |
+
+## Diagnostics et listes
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>cd` | n | Diagnostics de la ligne | lua/manu/lsp.lua |
+| `]d` | n | Diagnostic suivant | lua/manu/lsp.lua |
+| `[d` | n | Diagnostic précédent | lua/manu/lsp.lua |
+| `]e` | n | Erreur suivante | lua/manu/lsp.lua |
+| `[e` | n | Erreur précédente | lua/manu/lsp.lua |
+| `]w` | n | Avertissement suivant | lua/manu/lsp.lua |
+| `[w` | n | Avertissement précédent | lua/manu/lsp.lua |
+| `<leader>xl` | n | Liste locale (ouvrir/fermer) | lua/manu/lsp.lua |
+| `<leader>xq` | n | Quickfix (ouvrir/fermer) | lua/manu/lsp.lua |
+| `[q` | n | Élément quickfix précédent | lua/manu/lsp.lua |
+| `]q` | n | Élément quickfix suivant | lua/manu/lsp.lua |
+| `<leader>cm` | n | Mason | lua/manu/lsp.lua |
+| `<leader>uh` | n | Basculer les indices inline (inlay hints) | lua/manu/lsp.lua |
+
 ## Fichiers
 
 | Touche | Mode | Action | Fichier |
@@ -131,6 +155,52 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `<leader>M` | n | Manuel (flottant) | lua/manu/keymaps.lua |
 | `<leader>H` | n | Manuel (navigateur, via mdview) | lua/manu/keymaps.lua |
 | `<leader>?` | n | Raccourcis du buffer (which-key) | lua/manu/ui.lua |
+
+## Code / LSP (buffer)
+
+Posés à l'attache d'un serveur (LspAttach). S'ajoutent aux touches natives de Neovim :
+`grn` renommer, `gra` actions, `grr` références, `gri` implémentation, `grt` type,
+`gO` symboles du document, `<C-s>` (insertion) signature.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `gd` | n | Aller à la définition (sauf si le buffer a déjà son `gd`) | lua/manu/lsp.lua |
+| `gr` | n | Références | lua/manu/lsp.lua |
+| `gI` | n | Aller à l'implémentation | lua/manu/lsp.lua |
+| `gy` | n | Aller au type | lua/manu/lsp.lua |
+| `gD` | n | Aller à la déclaration | lua/manu/lsp.lua |
+| `K` | n | Documentation (survol) | lua/manu/lsp.lua |
+| `gK` | n | Signature | lua/manu/lsp.lua |
+| `<C-k>` | i | Signature | lua/manu/lsp.lua |
+| `<leader>ca` | nx | Actions de code | lua/manu/lsp.lua |
+| `<leader>cA` | n | Actions sur le fichier (source) | lua/manu/lsp.lua |
+| `<leader>co` | n | Organiser les imports | lua/manu/lsp.lua |
+| `<leader>cr` | n | Renommer le symbole | lua/manu/lsp.lua |
+| `<leader>cR` | n | Renommer le fichier (prévient le serveur) | lua/manu/lsp.lua |
+| `<leader>cc` | nx | Lancer le codelens | lua/manu/lsp.lua |
+| `<leader>cC` | n | Afficher les codelens | lua/manu/lsp.lua |
+| `<leader>cl` | n | Infos LSP (`:checkhealth vim.lsp`) | lua/manu/lsp.lua |
+| `]]` / `<M-n>` | n | Référence suivante du symbole | lua/manu/lsp.lua |
+| `[[` / `<M-p>` | n | Référence précédente du symbole | lua/manu/lsp.lua |
+
+## Treesitter (buffer)
+
+Posés quand le langage a des requêtes textobjects.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `]f` / `[f` | nxo | Début de fonction suivante / précédente | lua/manu/treesitter.lua |
+| `]F` / `[F` | nxo | Fin de fonction suivante / précédente | lua/manu/treesitter.lua |
+| `]c` / `[c` | nxo | Début de classe suivante / précédente (hors mode diff) | lua/manu/treesitter.lua |
+| `]C` / `[C` | nxo | Fin de classe suivante / précédente | lua/manu/treesitter.lua |
+| `]a` / `[a` | nxo | Début de paramètre suivant / précédent | lua/manu/treesitter.lua |
+| `]A` / `[A` | nxo | Fin de paramètre suivant / précédent | lua/manu/treesitter.lua |
+
+## Complétion (buffer, blink.cmp)
+
+Préréglage `enter` : `<CR>` accepte, `<C-Space>` ouvre le menu ou la doc, `<C-n>`/`<C-p>`
+ou `<Up>`/`<Down>` naviguent, `<C-e>` ferme, `<Tab>`/`<S-Tab>` sautent dans un snippet,
+`<C-b>`/`<C-f>` font défiler la doc, `<C-k>` affiche la signature.
 
 ## Fenêtres utilitaires (buffer)
 

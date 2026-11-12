@@ -12,3 +12,7 @@ require("manu.keymaps")
 require("manu.pack_hooks") -- avant tout vim.pack.add
 require("manu.mason")
 require("manu.ui")
+require("manu.treesitter")
+require("manu.lsp")
+require("manu.completion")
+require("manu.lang.lua")
