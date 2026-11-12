@@ -9,3 +9,6 @@
 require("manu.options")
 require("manu.autocmds")
 require("manu.keymaps")
+require("manu.pack_hooks") -- avant tout vim.pack.add
+require("manu.mason")
+require("manu.ui")

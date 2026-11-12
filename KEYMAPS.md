@@ -35,6 +35,7 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `<leader>-` | n | Découper en dessous | lua/manu/keymaps.lua |
 | `<leader><Bar>` | n | Découper à droite | lua/manu/keymaps.lua |
 | `<leader>wd` | n | Fermer la fenêtre | lua/manu/keymaps.lua |
+| `<C-w><Space>` | n | Mode fenêtres (which-key, reste ouvert) | lua/manu/ui.lua |
 
 ## Buffers
 
@@ -46,6 +47,17 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `<leader>bo` | n | Fermer les autres buffers | lua/manu/keymaps.lua |
 | `<leader>bi` | n | Fermer les buffers invisibles | lua/manu/keymaps.lua |
 | `<leader>bD` | n | Fermer le buffer et la fenêtre | lua/manu/keymaps.lua |
+| `<S-h>` | n | Buffer précédent | lua/manu/ui.lua |
+| `<S-l>` | n | Buffer suivant | lua/manu/ui.lua |
+| `[b` | n | Buffer précédent | lua/manu/ui.lua |
+| `]b` | n | Buffer suivant | lua/manu/ui.lua |
+| `[B` | n | Déplacer le buffer à gauche | lua/manu/ui.lua |
+| `]B` | n | Déplacer le buffer à droite | lua/manu/ui.lua |
+| `<leader>bp` | n | Épingler/désépingler le buffer | lua/manu/ui.lua |
+| `<leader>bP` | n | Fermer les buffers non épinglés | lua/manu/ui.lua |
+| `<leader>bl` | n | Fermer les buffers à gauche | lua/manu/ui.lua |
+| `<leader>br` | n | Fermer les buffers à droite | lua/manu/ui.lua |
+| `<leader>bj` | n | Choisir un buffer (lettre) | lua/manu/ui.lua |
 
 ## Onglets
 
@@ -118,6 +130,7 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `<leader>K` | n | Raccourcis (ce fichier, en flottant) | lua/manu/keymaps.lua |
 | `<leader>M` | n | Manuel (flottant) | lua/manu/keymaps.lua |
 | `<leader>H` | n | Manuel (navigateur, via mdview) | lua/manu/keymaps.lua |
+| `<leader>?` | n | Raccourcis du buffer (which-key) | lua/manu/ui.lua |
 
 ## Fenêtres utilitaires (buffer)
 

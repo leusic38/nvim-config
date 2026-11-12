@@ -33,61 +33,21 @@ map("n", "<leader>wd", "<C-W>c", { desc = "Fermer la fenêtre", remap = true })
 
 -- ─── Buffers ───────────────────────────────────────────────────────────────
 
---- Ferme un buffer sans fermer ses fenêtres (elles passent au buffer alterné ou précédent).
-local function bufdelete(buf)
-  buf = (buf == nil or buf == 0) and vim.api.nvim_get_current_buf() or buf
-  if vim.bo[buf].modified then
-    local choice = vim.fn.confirm(
-      ("Enregistrer les modifications de %q ?"):format(vim.fn.bufname(buf)),
-      "&Oui\n&Non\n&Annuler"
-    )
-    if choice == 0 or choice == 3 then
-      return
-    elseif choice == 1 then
-      vim.api.nvim_buf_call(buf, function()
-        vim.cmd("write")
-      end)
-    end
-  end
-  for _, win in ipairs(vim.fn.win_findbuf(buf)) do
-    vim.api.nvim_win_call(win, function()
-      local alt = vim.fn.bufnr("#")
-      if alt ~= buf and alt > 0 and vim.fn.buflisted(alt) == 1 then
-        vim.api.nvim_win_set_buf(win, alt)
-      else
-        pcall(vim.cmd, "bprevious")
-      end
-      if vim.api.nvim_win_get_buf(win) == buf then
-        vim.api.nvim_win_set_buf(win, vim.api.nvim_create_buf(true, false))
-      end
-    end)
-  end
-  if vim.api.nvim_buf_is_valid(buf) then
-    pcall(vim.cmd, "bdelete! " .. buf)
-  end
-end
-
-local function bufdelete_where(pred)
-  for _, b in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.bo[b].buflisted and pred(b) then
-      bufdelete(b)
-    end
-  end
-end
+local bufdelete = require("manu.bufdelete")
 
 map("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Buffer précédent (alterné)" })
 map("n", "<leader>`", "<cmd>e #<cr>", { desc = "Buffer précédent (alterné)" })
 map("n", "<leader>bd", function()
-  bufdelete(0)
+  bufdelete.delete(0)
 end, { desc = "Fermer le buffer" })
 map("n", "<leader>bo", function()
   local cur = vim.api.nvim_get_current_buf()
-  bufdelete_where(function(b)
+  bufdelete.where(function(b)
     return b ~= cur
   end)
 end, { desc = "Fermer les autres buffers" })
 map("n", "<leader>bi", function()
-  bufdelete_where(function(b)
+  bufdelete.where(function(b)
     return #vim.fn.win_findbuf(b) == 0
   end)
 end, { desc = "Fermer les buffers invisibles" })
