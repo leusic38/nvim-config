@@ -7,7 +7,8 @@ nvim-config, montée en worktree dans `~/dotfiles/neovimanu/.config/neovimanu`
 ## Lancer
 
 ```sh
-nn            # alias de NVIM_APPNAME=neovimanu nvim
+nn                      # alias de NVIM_APPNAME=neovimanu nvim : page d'accueil
+nn ~/Projects/lama/     # se place dans lama et affiche l'accueil
 ```
 
 ## Tests

@@ -18,10 +18,12 @@ for spec in tests/*_spec.lua; do
   elif [[ "$first" == "-- verbose" ]]; then
     args=(--cmd "set verbose=1")
   fi
+  # Le spec tourne après VimEnter (les -c passent avant), comme un vrai démarrage.
   # pcall : une erreur Lua dans le spec ne doit pas laisser nvim headless en attente.
-  out="$(NVIM_APPNAME=neovimanu timeout 90 nvim --headless "${args[@]}" \
+  # -i NONE : les tests ne touchent pas à l'historique (fichiers récents de l'accueil).
+  out="$(NVIM_APPNAME=neovimanu timeout 90 nvim --headless -i NONE "${args[@]}" \
     --cmd "lua package.path = '$root/tests/?.lua;' .. package.path" \
-    -c "lua local ok, err = pcall(dofile, '$spec') if not ok then io.stdout:write('  erreur : ' .. tostring(err) .. '\\n') vim.cmd('cquit 2') end" \
+    -c "lua vim.api.nvim_create_autocmd('VimEnter', { once = true, callback = vim.schedule_wrap(function() local ok, err = pcall(dofile, '$root/$spec') if not ok then io.stdout:write('  erreur : ' .. tostring(err) .. '\\n') vim.cmd('cquit 2') end end) })" \
     2>&1)"
   code=$?
   if [[ $code -eq 0 ]]; then

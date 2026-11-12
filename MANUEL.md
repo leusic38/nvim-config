@@ -26,6 +26,20 @@
 
 ---
 
+## 0. Démarrer
+
+| Commande                  | Ce qui s'ouvre                                              |
+| ------------------------- | ----------------------------------------------------------- |
+| `nn`                      | La **page d'accueil**, dans le dossier courant              |
+| `nn ~/Projects/lama/`     | Neovim **se place dans `lama`** (`:cd`) et affiche l'accueil |
+| `nn fichier.php`          | Le fichier, directement (pas d'accueil)                     |
+
+Sur l'accueil, une lettre lance l'action (`f` fichier, `r` récents, `g` grep, `s` session,
+`e` Oil, `G` lazygit, `a` Claude, `q` quitter…) et `1` à `5` rouvrent les derniers fichiers
+du dossier. `:Accueil` la rouvre à tout moment.
+
+---
+
 ## 1. Survivre : les raccourcis à connaître
 
 | Raccourci                 | Ce que ça fait                                   |

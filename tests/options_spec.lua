@@ -3,7 +3,7 @@ local t = require("helpers")
 
 t.eq(vim.g.mapleader, " ", "leader = espace")
 t.eq(vim.g.maplocalleader, "\\", "localleader = \\")
-t.ok(vim.o.relativenumber, "relativenumber")
+t.ok(vim.go.relativenumber, "relativenumber")
 t.eq(vim.o.clipboard, "unnamedplus", "clipboard unnamedplus")
 t.eq(vim.o.winborder, "rounded", "winborder rounded")
 t.eq(vim.o.laststatus, 3, "laststatus 3")

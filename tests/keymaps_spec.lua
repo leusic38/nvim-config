@@ -8,6 +8,9 @@
 -- nvim note alors le fichier qui pose chaque raccourci.
 local t = require("helpers")
 
+-- Buffer neuf : les raccourcis locaux de l'accueil ne doivent pas se mêler à « verbose map ».
+vim.cmd("enew")
+
 -- Plugins autorisés à poser des raccourcis globaux, par mode. N'étendre que si une
 -- tâche l'exige, avec la raison en commentaire.
 local ALLOWED = {

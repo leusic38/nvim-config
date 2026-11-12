@@ -3,7 +3,7 @@
 -- Ce fichier ne fait que fixer l'ordre de chargement des modules lua/manu/*.lua.
 -- Ordre prévu : options → autocmds → keymaps → pack_hooks (avant tout vim.pack.add)
 -- → ui → treesitter → lsp → completion → format → lint → picker → files
--- → terminal → git → editing → ai → lang/*.
+-- → terminal → git → editing → ai → lang/* → dashboard (page d'accueil, au VimEnter).
 -- Chaque module ajoute lui-même ses plugins (vim.pack.add) puis les configure.
 
 require("manu.options")
@@ -24,3 +24,4 @@ require("manu.git")
 require("manu.editing")
 require("manu.ai")
 require("manu.lang.lua")
+require("manu.dashboard")

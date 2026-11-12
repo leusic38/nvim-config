@@ -412,6 +412,27 @@ et `<leader>co` du LSP dans ce buffer).
 | `<leader>ca` / `<leader>cA` | n | Garder les deux (bloc / fichier) | (diffview) |
 | `dx` | n | Supprimer le bloc de conflit | (diffview) |
 
+## Page d'accueil (buffer)
+
+Affichée par `nn` seul ou `nn <dossier>` (Neovim se place alors dans le dossier) ;
+`:Accueil` la rouvre. `<CR>` lance l'élément sous le curseur.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `f` | n | Trouver un fichier | lua/manu/dashboard.lua |
+| `r` | n | Fichiers récents du projet | lua/manu/dashboard.lua |
+| `g` | n | Chercher du texte | lua/manu/dashboard.lua |
+| `s` | n | Restaurer la session | lua/manu/dashboard.lua |
+| `e` | n | Explorer le dossier (Oil) | lua/manu/dashboard.lua |
+| `n` | n | Nouveau fichier | lua/manu/dashboard.lua |
+| `G` | n | Lazygit | lua/manu/dashboard.lua |
+| `a` | n | Claude (sidekick) | lua/manu/dashboard.lua |
+| `c` | n | Config Neovim | lua/manu/dashboard.lua |
+| `m` | n | Manuel | lua/manu/dashboard.lua |
+| `q` | n | Quitter | lua/manu/dashboard.lua |
+| `1` … `5` | n | Ouvrir un fichier récent du dossier | lua/manu/dashboard.lua |
+| `<CR>` | n | Lancer l'élément sous le curseur | lua/manu/dashboard.lua |
+
 ## Fenêtres utilitaires (buffer)
 
 | Touche | Mode | Action | Fichier |
