@@ -41,6 +41,9 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 
 | Touche | Mode | Action | Fichier |
 |--------|------|--------|---------|
+| `<leader>,` | n | Changer de buffer (fzf) | lua/manu/picker.lua |
+| `<leader>fb` | n | Buffers (fzf) | lua/manu/picker.lua |
+| `<leader>fB` | n | Buffers, y compris non listés (fzf) | lua/manu/picker.lua |
 | `<leader>bb` | n | Buffer alterné | lua/manu/keymaps.lua |
 | ``<leader>` `` | n | Buffer alterné | lua/manu/keymaps.lua |
 | `<leader>bd` | n | Fermer le buffer (garde la fenêtre) | lua/manu/keymaps.lua |
@@ -136,11 +139,53 @@ Formatage à l'enregistrement seulement si le projet a la config du formateur.
 
 | Touche | Mode | Action | Fichier |
 |--------|------|--------|---------|
+| `<leader><Space>` | n | Fichiers (racine du projet) | lua/manu/picker.lua |
+| `<leader>ff` | n | Fichiers (racine du projet) | lua/manu/picker.lua |
+| `<leader>fF` | n | Fichiers (dossier courant) | lua/manu/picker.lua |
+| `<leader>fg` | n | Fichiers suivis par git | lua/manu/picker.lua |
+| `<leader>fr` | n | Fichiers récents | lua/manu/picker.lua |
+| `<leader>fR` | n | Fichiers récents (dossier courant) | lua/manu/picker.lua |
+| `<leader>fc` | n | Fichiers de la config Neovim | lua/manu/picker.lua |
+| `-` | n | Dossier parent (Oil) | lua/manu/files.lua |
+| `<leader>e` | n | Dossier parent (Oil flottant) | lua/manu/files.lua |
 | `<leader>fn` | n | Nouveau fichier (demande le nom) | lua/manu/keymaps.lua |
 | `<leader>yn` | n | Copier le nom du fichier | lua/manu/keymaps.lua |
 | `<leader>yp` | n | Copier le chemin relatif | lua/manu/keymaps.lua |
 | `<leader>yP` | n | Copier le chemin absolu | lua/manu/keymaps.lua |
 | `<leader>qq` | n | Tout quitter | lua/manu/keymaps.lua |
+
+## Recherche (fzf-lua)
+
+« Racine » = premier parent contenant `.git`, `composer.json` ou `package.json`.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>/` | n | Grep (racine du projet) | lua/manu/picker.lua |
+| `<leader>sg` | n | Grep (racine du projet) | lua/manu/picker.lua |
+| `<leader>sG` | n | Grep (dossier courant) | lua/manu/picker.lua |
+| `<leader>sw` | nx | Mot sous le curseur / sélection (racine) | lua/manu/picker.lua |
+| `<leader>sW` | nx | Mot sous le curseur / sélection (dossier courant) | lua/manu/picker.lua |
+| `<leader>sb` | n | Lignes du buffer | lua/manu/picker.lua |
+| `<leader>:` | n | Historique des commandes | lua/manu/picker.lua |
+| `<leader>sc` | n | Historique des commandes | lua/manu/picker.lua |
+| `<leader>s/` | n | Historique des recherches | lua/manu/picker.lua |
+| `<leader>s"` | n | Registres | lua/manu/picker.lua |
+| `<leader>sC` | n | Commandes | lua/manu/picker.lua |
+| `<leader>sa` | n | Autocommandes | lua/manu/picker.lua |
+| `<leader>sh` | n | Pages d'aide | lua/manu/picker.lua |
+| `<leader>sH` | n | Groupes de surlignage | lua/manu/picker.lua |
+| `<leader>sM` | n | Pages man | lua/manu/picker.lua |
+| `<leader>sk` | n | Raccourcis | lua/manu/picker.lua |
+| `<leader>sj` | n | Liste des sauts | lua/manu/picker.lua |
+| `<leader>sm` | n | Marques | lua/manu/picker.lua |
+| `<leader>sl` | n | Liste locale | lua/manu/picker.lua |
+| `<leader>sq` | n | Quickfix | lua/manu/picker.lua |
+| `<leader>sR` | n | Reprendre la dernière recherche | lua/manu/picker.lua |
+| `<leader>sd` | n | Diagnostics (projet) | lua/manu/picker.lua |
+| `<leader>sD` | n | Diagnostics (buffer) | lua/manu/picker.lua |
+| `<leader>ss` | n | Symboles du fichier (LSP) | lua/manu/picker.lua |
+| `<leader>sS` | n | Symboles du projet (LSP) | lua/manu/picker.lua |
+| `<leader>uC` | n | Thèmes (aperçu) | lua/manu/picker.lua |
 
 ## Interface / bascules
 
@@ -212,6 +257,19 @@ Posés quand le langage a des requêtes textobjects.
 Préréglage `enter` : `<CR>` accepte, `<C-Space>` ouvre le menu ou la doc, `<C-n>`/`<C-p>`
 ou `<Up>`/`<Down>` naviguent, `<C-e>` ferme, `<Tab>`/`<S-Tab>` sautent dans un snippet,
 `<C-b>`/`<C-f>` font défiler la doc, `<C-k>` affiche la signature.
+
+## Oil (buffer)
+
+Dans un dossier ouvert par Oil (`g?` affiche toutes les touches) : `<CR>` ouvrir,
+`-` dossier parent, `_` dossier courant de Neovim, `<C-s>` découpage vertical,
+`<C-t>` onglet, `<C-p>` aperçu, `<C-l>` rafraîchir, `g.` fichiers cachés, `gs` tri,
+`gx` ouvrir avec le système, `` ` `` / `~` changer de dossier courant. `:w` applique les
+modifications (renommer, créer, supprimer).
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<A-v>` | n | Ouvrir dans un découpage vertical | lua/manu/files.lua |
+| `<A-h>` | n | Ouvrir dans un découpage horizontal | lua/manu/files.lua |
 
 ## Fenêtres utilitaires (buffer)
 
