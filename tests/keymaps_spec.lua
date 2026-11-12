@@ -82,8 +82,8 @@ for _, line in ipairs(doc_lines) do
     local cells = vim.split(line, "|", { plain = true })
     local key = vim.trim(cells[2]):gsub("^`+%s?", ""):gsub("%s?`+$", "")
     local modes = vim.trim(cells[3] or "")
-    -- <C-j> devient <NL> par replace_termcodes, alors que nvim garde <C-J> pour le raccourci.
-    local raw = vim.fn.keytrans(vim.api.nvim_replace_termcodes(key, true, true, true)):gsub("<NL>", "<C-J>")
+    -- replace_termcodes donne <NL> pour <C-j> et <C-\> pour <C-Bslash> ; nvim garde <C-J>/<C-Bslash>.
+    local raw = vim.fn.keytrans(vim.api.nvim_replace_termcodes(key, true, true, true)):gsub("<NL>", "<C-J>"):gsub("<C%-\\>", "<C-Bslash>")
     doc[raw] = doc[raw] or { modes = {}, key = key }
     for m in modes:gmatch("%a") do
       doc[raw].modes[m] = true

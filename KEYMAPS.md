@@ -187,6 +187,37 @@ Formatage à l'enregistrement seulement si le projet a la config du formateur.
 | `<leader>sS` | n | Symboles du projet (LSP) | lua/manu/picker.lua |
 | `<leader>uC` | n | Thèmes (aperçu) | lua/manu/picker.lua |
 
+## Terminal
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<C-Bslash>` | nt | Terminal flottant (ouvrir/cacher) | lua/manu/terminal.lua |
+| `<leader>tf` | n | Terminal flottant | lua/manu/terminal.lua |
+| `<leader>th` | n | Terminal horizontal | lua/manu/terminal.lua |
+| `<leader>tv` | n | Terminal vertical | lua/manu/terminal.lua |
+| `<leader>ft` | n | Terminal (racine du projet) | lua/manu/terminal.lua |
+| `<leader>fT` | n | Terminal (dossier courant) | lua/manu/terminal.lua |
+| `<C-/>` | nt | Terminal (racine du projet) | lua/manu/terminal.lua |
+| `<C-_>` | nt | Terminal (racine du projet), variante de `<C-/>` | lua/manu/terminal.lua |
+| `<leader>od` | n | Lazydocker (conteneurs) | lua/manu/terminal.lua |
+
+## Git
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>gg` | n | Lazygit (racine du projet) | lua/manu/terminal.lua |
+| `<leader>gG` | n | Lazygit (dossier courant) | lua/manu/terminal.lua |
+| `<leader>gd` | n | Diffview (HEAD) | lua/manu/git.lua |
+| `<leader>gD` | n | Fermer Diffview | lua/manu/git.lua |
+| `<leader>gF` | n | Historique du fichier (Diffview) | lua/manu/git.lua |
+| `<leader>gs` | n | Statut git (fzf) | lua/manu/git.lua |
+| `<leader>gS` | n | Stash git (fzf) | lua/manu/git.lua |
+| `<leader>gc` | n | Commits (fzf) | lua/manu/git.lua |
+| `<leader>gl` | n | Commits (racine du projet) | lua/manu/git.lua |
+| `<leader>gL` | n | Commits (dossier courant) | lua/manu/git.lua |
+| `<leader>gf` | n | Historique du fichier (fzf) | lua/manu/git.lua |
+| `<leader>gb` | n | Blame de la ligne | lua/manu/git.lua |
+
 ## Interface / bascules
 
 | Touche | Mode | Action | Fichier |
@@ -270,6 +301,35 @@ modifications (renommer, créer, supprimer).
 |--------|------|--------|---------|
 | `<A-v>` | n | Ouvrir dans un découpage vertical | lua/manu/files.lua |
 | `<A-h>` | n | Ouvrir dans un découpage horizontal | lua/manu/files.lua |
+
+## Terminal toggleterm (buffer)
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<Esc>` | t | Fermer le terminal (pas dans lazygit/lazydocker) | lua/manu/terminal.lua |
+| `<C-Space>` | t | Mode normal sans fermer | lua/manu/terminal.lua |
+| `<C-h>` `<C-j>` `<C-k>` `<C-l>` | t | Aller à la fenêtre voisine | lua/manu/terminal.lua |
+
+## Git (buffer)
+
+Posés par gitsigns dans un fichier suivi.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `]h` / `[h` | n | Hunk suivant / précédent (`]c`/`[c` en mode diff) | lua/manu/git.lua |
+| `]H` / `[H` | n | Dernier / premier hunk | lua/manu/git.lua |
+| `<leader>ghs` | nx | Indexer le hunk | lua/manu/git.lua |
+| `<leader>ghr` | nx | Annuler le hunk | lua/manu/git.lua |
+| `<leader>ghS` | n | Indexer le fichier | lua/manu/git.lua |
+| `<leader>ghu` | n | Désindexer le hunk | lua/manu/git.lua |
+| `<leader>ghR` | n | Annuler les modifications du fichier | lua/manu/git.lua |
+| `<leader>ghp` | n | Aperçu du hunk | lua/manu/git.lua |
+| `<leader>ghb` | n | Blame de la ligne | lua/manu/git.lua |
+| `<leader>ghB` | n | Blame du fichier | lua/manu/git.lua |
+| `<leader>ghd` | n | Diff du fichier | lua/manu/git.lua |
+| `<leader>ghD` | n | Diff du fichier (~) | lua/manu/git.lua |
+| `ih` | ox | Hunk (objet textuel) | lua/manu/git.lua |
+| `<leader>gc` | n | Message de commit : type Conventional Commits | lua/manu/git.lua |
 
 ## Fenêtres utilitaires (buffer)
 
