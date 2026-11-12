@@ -11,6 +11,18 @@ require("mason").setup({ ui = { border = "rounded" } })
 
 local M = {}
 
+--- Supprime les liens de mason/bin laissés par une installation interrompue (Neovim quitté
+--- pendant l'installation) : sans ça, la réinstallation échoue (« is already linked »).
+local function remove_stale_links(pkg)
+  local bin_dir = vim.fn.stdpath("data") .. "/mason/bin/"
+  for name in pairs(vim.tbl_get(pkg, "spec", "bin") or {}) do
+    local link = bin_dir .. name
+    if vim.uv.fs_lstat(link) and not vim.uv.fs_stat(link) then
+      vim.uv.fs_unlink(link)
+    end
+  end
+end
+
 --- Installe en tâche de fond les paquets Mason absents. Jamais bloquant : hors ligne,
 --- le rafraîchissement du registre échoue et rien n'est tenté.
 ---@param pkgs string[]
@@ -27,6 +39,7 @@ function M.ensure(pkgs)
           vim.notify("Mason : paquet inconnu " .. name, vim.log.levels.WARN)
         end)
       elseif not pkg:is_installed() and not pkg:is_installing() then
+        remove_stale_links(pkg)
         pkg:install()
       end
     end

@@ -28,3 +28,18 @@ VERBOSE=1 tests/run.sh  # affiche aussi la sortie des specs qui passent
 Un raccourci = **une seule déclaration** dans `lua/manu/*.lua`, avec une `desc`, **et une ligne
 dans `KEYMAPS.md`**. `tests/run.sh keymaps` vérifie que les deux correspondent et qu'aucun
 plugin ne pose de raccourci global non déclaré.
+
+## Documentation
+
+- `MANUEL.md` : comment s'en servir (`<leader>M` dans Neovim, `<leader>H` dans le navigateur).
+- `KEYMAPS.md` : tous les raccourcis (`<leader>K`).
+- `docs/tri.md` : ce qui a été repris de l'ancienne config LazyVim (généré par
+  `tools/inventaire.lua`).
+
+## Tests
+
+- `tests/run.sh` : specs headless (`tests/*_spec.lua`), rapides.
+- `tests/first_run.sh` : installation complète dans un dossier vide puis second démarrage
+  sans erreur (réseau, ~1 min).
+
+Démarrage mesuré (2026-11-12, headless, `--startuptime`) : **~95 ms**.

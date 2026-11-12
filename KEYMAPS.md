@@ -398,6 +398,20 @@ Posés par gitsigns dans un fichier suivi.
 | `ih` | ox | Hunk (objet textuel) | lua/manu/git.lua |
 | `<leader>gc` | n | Message de commit : type Conventional Commits | lua/manu/git.lua |
 
+## Diffview, conflit de fusion (buffer)
+
+Touches de diffview.nvim dans le fichier central d'un conflit (elles masquent `<leader>ca`
+et `<leader>co` du LSP dans ce buffer).
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `]x` / `[x` | n | Conflit suivant / précédent | (diffview) |
+| `<leader>co` / `<leader>cO` | n | Garder ours (bloc / fichier) | (diffview) |
+| `<leader>ct` / `<leader>cT` | n | Garder theirs (bloc / fichier) | (diffview) |
+| `<leader>cb` / `<leader>cB` | n | Garder la base (bloc / fichier) | (diffview) |
+| `<leader>ca` / `<leader>cA` | n | Garder les deux (bloc / fichier) | (diffview) |
+| `dx` | n | Supprimer le bloc de conflit | (diffview) |
+
 ## Fenêtres utilitaires (buffer)
 
 | Touche | Mode | Action | Fichier |
