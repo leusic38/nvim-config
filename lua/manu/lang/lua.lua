@@ -23,4 +23,13 @@ vim.lsp.config("lua_ls", {
 })
 vim.lsp.enable({ "lua_ls" })
 
+-- stylua seulement si le projet a sa config (règle du formatage, cf. manu.format).
+local format = require("manu.format")
+require("conform").formatters.stylua = {
+  condition = function(_, ctx)
+    return format.project_has({ "stylua.toml", ".stylua.toml" }, ctx.buf)
+  end,
+}
+require("conform").formatters_by_ft.lua = { "stylua" }
+
 require("manu.treesitter").install({ "lua", "luadoc" })

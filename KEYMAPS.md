@@ -121,6 +121,17 @@ Leader : `<Space>`. Localleader : `\`. Modes : `n` normal, `x` visuel, `o` opér
 | `<leader>cm` | n | Mason | lua/manu/lsp.lua |
 | `<leader>uh` | n | Basculer les indices inline (inlay hints) | lua/manu/lsp.lua |
 
+## Formatage
+
+Formatage à l'enregistrement seulement si le projet a la config du formateur.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>cf` | nx | Formater (fichier ou sélection ; LSP si pas de formateur) | lua/manu/format.lua |
+| `<leader>cF` | nx | Formater les langages injectés | lua/manu/format.lua |
+| `<leader>uf` | n | Basculer le formatage auto (global) | lua/manu/format.lua |
+| `<leader>uF` | n | Basculer le formatage auto (buffer) | lua/manu/format.lua |
+
 ## Fichiers
 
 | Touche | Mode | Action | Fichier |
