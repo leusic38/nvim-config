@@ -5,3 +5,7 @@
 -- → ui → treesitter → lsp → completion → format → lint → picker → files
 -- → terminal → git → editing → ai → lang/*.
 -- Chaque module ajoute lui-même ses plugins (vim.pack.add) puis les configure.
+
+require("manu.options")
+require("manu.autocmds")
+require("manu.keymaps")
