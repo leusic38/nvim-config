@@ -36,12 +36,32 @@ local docker = mkproject("docker", {
   ["src/A.php"] = { "" },
 })
 t.eq(project.docker(docker), { service = "php", container_root = "/var/app/x" }, "docker.lua lu (php)")
+-- Node dans le conteneur PHP (sonde remplacée) : via nvm, ou absent, ou node = false.
+local probe = project._probe_node
+project._probe_node = function()
+  return { setup = '. "$NVM_DIR/nvm.sh" >/dev/null' }
+end
+local auto = mkproject("autonode", { [".nvim/docker.lua"] = { 'return { service = "php", container_root = "/v" }' } })
+t.eq(project.docker(auto, "node"), { service = "php", container_root = "/v", setup = '. "$NVM_DIR/nvm.sh" >/dev/null' }, "node détecté dans le conteneur php (nvm)")
+local orig_running = project.container_running
+project.container_running = function()
+  return true
+end
+t.eq(project.cmd(auto, { "node_modules/.bin/jest" }, "node"), {
+  "docker", "compose", "exec", "-T", "-w", "/v", "php", "bash", "-c", '. "$NVM_DIR/nvm.sh" >/dev/null && exec "$@"', "manu", "node_modules/.bin/jest",
+}, "commande node via nvm, arguments intacts")
+project.container_running = orig_running
+project._probe_node = function()
+  return false
+end
+t.eq(project.docker(auto, "node"), nil, "pas de node dans le conteneur → hôte")
+local off = mkproject("nodeoff", { [".nvim/docker.lua"] = { 'return { service = "php", container_root = "/v", node = false }' } })
+t.eq(project.docker(off, "node"), nil, "node = false → hôte")
+project._probe_node = probe
 t.eq(project.docker(docker, "node"), { service = "node", container_root = "/app" }, "docker.lua lu (node)")
 t.eq(project.docker(plain), nil, "pas de docker.lua → nil")
 local bad = mkproject("bad", { ["composer.json"] = { "{}" }, [".nvim/docker.lua"] = { "return 42" } })
 t.eq(project.docker(bad), nil, "docker.lua invalide → nil sans erreur")
-local php_only = mkproject("phponly", { [".nvim/docker.lua"] = { 'return { service = "php", container_root = "/v" }' } })
-t.eq(project.docker(php_only, "node"), nil, "runtime node non déclaré → nil")
 
 local d = project.docker(docker)
 t.eq(project.to_container(docker .. "/src/A.php", docker, d), "/var/app/x/src/A.php", "chemin hôte → conteneur")

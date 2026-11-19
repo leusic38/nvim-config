@@ -9,6 +9,9 @@
 --     service = "php", container_root = "/var/app/lama",         -- outils PHP
 --     node = { service = "node", container_root = "/app" },       -- facultatif : outils JS
 --   }
+-- Sans entrée `node`, les outils JS vont dans le conteneur PHP s'il a Node (directement ou
+-- via nvm, cas de lama : l'image installe Node avec nvm, hors du PATH d'un `sh -c`).
+-- `node = false` force les outils JS sur l'hôte.
 --
 -- :Projet affiche ce qui a été détecté pour le buffer courant et l'outil retenu par rôle.
 
@@ -51,31 +54,81 @@ end
 -- ─── Conteneur ─────────────────────────────────────────────────────────────
 
 --- Conteneur déclaré pour un runtime, ou nil.
----@param root string|nil
----@param runtime? "php"|"node"
----@return { service: string, container_root: string }|nil
-function M.docker(root, runtime)
-  if not root then
-    return nil
-  end
+local function read_config(root)
   local path = root .. "/.nvim/docker.lua"
   if not vim.uv.fs_stat(path) then
     return nil
   end
   local ok, cfg = pcall(dofile, path)
-  if not ok or type(cfg) ~= "table" then
+  return ok and type(cfg) == "table" and cfg or nil
+end
+
+local function valid(cfg)
+  if type(cfg) == "table" and type(cfg.service) == "string" and type(cfg.container_root) == "string" then
+    return { service = cfg.service, container_root = cfg.container_root, setup = cfg.setup }
+  end
+end
+
+local node_probe = {} -- racine → { setup = string|nil } | false
+
+--- Node est-il dans le conteneur PHP ? Directement, ou via nvm (setup = ligne à exécuter
+--- avant l'outil). Sondé une fois par session, quand le conteneur tourne ; arrêté, on le
+--- suppose présent (règle : le conteneur plutôt que l'hôte).
+function M._probe_node(root, service)
+  if node_probe[root] ~= nil then
+    return node_probe[root]
+  end
+  if not M.container_running(root, service) then
+    return { setup = nil, unknown = true }
+  end
+  local script = 'command -v node >/dev/null && echo direct && exit; '
+    .. '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null && command -v node >/dev/null && echo nvm'
+  local ok, res = pcall(function()
+    return vim.system({ "docker", "compose", "exec", "-T", service, "bash", "-c", script }, { cwd = root, text = true })
+      :wait(10000)
+  end)
+  local out = ok and vim.trim(res.stdout or "") or ""
+  if out == "direct" then
+    node_probe[root] = { setup = nil }
+  elseif out == "nvm" then
+    node_probe[root] = { setup = '. "$NVM_DIR/nvm.sh" >/dev/null' }
+  else
+    node_probe[root] = false
+  end
+  return node_probe[root]
+end
+
+--- Conteneur d'un runtime, ou nil (outils sur l'hôte).
+---@param root string|nil
+---@param runtime? "php"|"node"
+---@return { service: string, container_root: string, setup?: string }|nil
+function M.docker(root, runtime)
+  if not root then
     return nil
   end
-  if (runtime or "php") == "node" then
-    cfg = cfg.node
-    if type(cfg) ~= "table" then
-      return nil
-    end
+  local cfg = read_config(root)
+  if not cfg then
+    return nil
   end
-  if type(cfg.service) == "string" and type(cfg.container_root) == "string" then
-    return { service = cfg.service, container_root = cfg.container_root }
+  local php = valid(cfg)
+  if (runtime or "php") == "php" then
+    return php
   end
-  return nil
+  if cfg.node == false then
+    return nil
+  end
+  if cfg.node ~= nil then
+    return valid(cfg.node)
+  end
+  if not php then
+    return nil
+  end
+  local probe = M._probe_node(root, php.service)
+  if not probe then
+    return nil
+  end
+  php.setup = probe.setup
+  return php
 end
 
 function M.to_container(path, root, docker)
@@ -139,7 +192,12 @@ function M.cmd(root, argv, runtime)
     return nil, msg
   end
   -- -w : l'outil part de la racine du projet dans le conteneur (il y trouve sa config).
-  return vim.list_extend({ "docker", "compose", "exec", "-T", "-w", docker.container_root, docker.service }, argv)
+  local base = { "docker", "compose", "exec", "-T", "-w", docker.container_root, docker.service }
+  if docker.setup then
+    -- Ex. nvm : charger l'environnement, puis lancer l'outil avec ses arguments intacts.
+    vim.list_extend(base, { "bash", "-c", docker.setup .. ' && exec "$@"', "manu" })
+  end
+  return vim.list_extend(base, argv)
 end
 
 -- ─── Outils du projet ──────────────────────────────────────────────────────
@@ -200,15 +258,16 @@ function M.describe(bufnr)
   table.insert(lines, "Framework    : " .. (M.framework(bufnr) or "-"))
   for _, runtime in ipairs({ "php", "node" }) do
     local d = M.docker(root, runtime)
-    local state = "-"
+    local state = "hôte"
     if d then
-      state = ("%s → %s (%s)"):format(
+      state = ("%s → %s (%s)%s"):format(
         d.service,
         d.container_root,
-        M.container_running(root, d.service) and "en marche" or "arrêté"
+        M.container_running(root, d.service) and "en marche" or "arrêté",
+        d.setup and ", via nvm" or ""
       )
     end
-    table.insert(lines, ("Conteneur %-3s: %s"):format(runtime, state))
+    table.insert(lines, ("%-13s: %s"):format("Outils " .. runtime, state))
   end
   local roles = vim.tbl_keys(reporters)
   table.sort(roles)
