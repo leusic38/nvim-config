@@ -42,5 +42,13 @@ plugin ne pose de raccourci global non déclaré.
 - `tests/run.sh` : specs headless (`tests/*_spec.lua`), rapides.
 - `tests/first_run.sh` : installation complète dans un dossier vide puis second démarrage
   sans erreur (réseau, ~1 min).
+- `tests/real_projects.sh <projet>` : contrôle sur un vrai projet PHP/Symfony (ex. lama) —
+  Intelephense, `gd`, PHPStan dans le conteneur, neotest, symfony-lsp. Lent, ne modifie rien.
+
+## Projets dockerisés
+
+Un `.nvim/docker.lua` à la racine d'un projet fait tourner ses outils (php-cs-fixer,
+PHPStan, PHPUnit, console, composer, outils JS) dans son conteneur. `:Projet` affiche ce qui
+est détecté pour le fichier courant. Détails : `MANUEL.md`, section 12.
 
 Démarrage mesuré (2026-11-12, headless, `--startuptime`) : **~95 ms**.

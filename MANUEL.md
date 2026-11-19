@@ -19,10 +19,14 @@
 6. [Formatage et lint](#6-formatage-et-lint)
 7. [Terminal](#7-terminal)
 8. [Git](#8-git)
-9. [Claude : IA et agents parallèles](#9-claude--ia-et-agents-parallèles)
-10. [Entretien de la config](#10-entretien-de-la-config)
-11. [Ajouter un langage](#11-ajouter-un-langage)
-12. [Dépannage](#12-dépannage)
+9. [PHP / Symfony](#9-php--symfony)
+10. [Twig, XML, YAML, JSON](#10-twig-xml-yaml-json)
+11. [Tests et débogage](#11-tests-et-débogage)
+12. [Config par projet : le dossier `.nvim/`](#12-config-par-projet--le-dossier-nvim)
+13. [Claude : IA et agents parallèles](#13-claude--ia-et-agents-parallèles)
+14. [Entretien de la config](#14-entretien-de-la-config)
+15. [Ajouter un langage](#15-ajouter-un-langage)
+16. [Dépannage](#16-dépannage)
 
 ---
 
@@ -235,9 +239,11 @@ la première sauvegarde.
 | Langage | Formatage                                  | Lint |
 | ------- | ------------------------------------------ | ---- |
 | Lua     | stylua **si `stylua.toml` / `.stylua.toml`** | lua_ls (diagnostics LSP) |
+| PHP     | php-cs-fixer **si `.php-cs-fixer(.dist).php`** (dans le conteneur) | PHPStan **si `phpstan(.dist).neon`**, à l'enregistrement |
+| Twig    | Twig-CS-Fixer **si `.twig-cs-fixer(.dist).php`** | Twig-CS-Fixer |
+| XML     | `<leader>cf` (lemminx)                      | lemminx (schémas XSD) |
 
-Les plans suivants ajoutent PHP (php-cs-fixer, PHPStan), JS/TS/Vue (Prettier, ESLint),
-Twig, SQL… avec la même règle.
+JS/TS/Vue (Prettier, ESLint) et SQL suivent, avec la même règle.
 
 - `<leader>uf` coupe/rétablit le formatage à l'enregistrement **partout** ;
   `<leader>uF` **pour le buffer courant** seulement (prioritaire sur le global).
@@ -336,7 +342,165 @@ Enregistrer, `-` dans le panneau de fichiers pour indexer, `<leader>gD` pour fer
 
 ---
 
-## 9. Claude : IA et agents parallèles
+## 9. PHP / Symfony
+
+### La stack
+
+- **Intelephense** : serveur PHP principal (complétion, navigation, diagnostics). Il lit
+  `vendor/` sur l'hôte : `gd` sur une classe Symfony ou Doctrine ouvre sa source.
+- **symfony-lsp** (Symfony Language Tools) : second serveur, actif **seulement dans une
+  vraie appli Symfony** (`composer.json` + `bin/console` ou `config/bundles.php`). Il
+  comprend services, paramètres et routes.
+- **phpactor** : refactoring PHP (nouvelle classe, import, transformation).
+- **php-cs-fixer** et **PHPStan** : formatage et analyse statique.
+- **PHPUnit / Pest** via neotest, **Xdebug** via nvim-dap (§11).
+
+### Le conteneur d'abord
+
+Quand le projet a un `.nvim/docker.lua` (§12), **ses outils tournent dans le conteneur**,
+avec les binaires du projet (`bin-dir` du `composer.json`, `bin/` pour lama) : la même
+version de PHP et des outils que la CI. Si le conteneur est arrêté, rien ne tourne sur
+l'hôte à sa place : un message indique la commande pour le démarrer
+(`docker compose up -d php`).
+
+**`:Projet`** affiche ce que la config a détecté pour le fichier courant : racine,
+framework, conteneur (en marche ou non), et la commande exacte de chaque outil.
+
+### Formatage et analyse
+
+- Enregistrer un PHP lance **php-cs-fixer** si le projet a `.php-cs-fixer(.dist).php`
+  (sinon rien n'est réécrit), puis **PHPStan** si le projet a `phpstan(.dist).neon`.
+- PHPStan ne tourne **qu'à l'enregistrement** (il est lent sur un gros projet).
+- `<leader>plc` formate avec php-cs-fixer, `<leader>plf` avec le LSP,
+  `<leader>pll` lance PHPStan.
+
+### Raccourcis par groupe
+
+| Groupe       | Contenu                                                          |
+| ------------ | ---------------------------------------------------------------- |
+| `<leader>pl…` | `<leader>plf` format LSP, `<leader>plc` php-cs-fixer, `<leader>pll` PHPStan |
+| `<leader>p…` | phpactor (`<leader>pm` menu, `<leader>pn` nouvelle classe, `<leader>pi` import) et snippets (`<leader>pv` en-tête, `<leader>pc` classe, `<leader>pe` entité, `<leader>pr` repository, `<leader>ps` service) |
+| `<leader>pt…` | Tests du fichier PHP (§11)                                        |
+| `<leader>pd…` | Débogage Xdebug (§11)                                             |
+| `<leader>S…` | Console Symfony : `<leader>Sc` commande, `<leader>Sm` make, `<leader>Sd` doctrine, `<leader>Sr` routes, `<leader>Ss` services, `<leader>Se` config |
+| `<leader>C…` | Composer : `<leader>Ci` install, `<leader>Cu` update, `<leader>Cr` require, `<leader>Cd` dump-autoload |
+
+Console et Composer s'ouvrent dans un **terminal flottant** (dans le conteneur), qui reste
+ouvert pour lire la sortie : `q` le ferme.
+
+### L'index Symfony
+
+symfony-lsp construit un **index runtime** en exécutant `bin/console` (dans le conteneur) :
+c'est lui qui alimente la navigation YAML, les références et les diagnostics.
+
+- `<leader>Si` : état de l'index (racines, confiance, source/runtime).
+- `<leader>SR` : le reconstruire (après un ajout de service, un `composer install`…).
+- `<leader>SE` : réindexer dans un autre environnement (`dev`, `test`).
+
+Le projet est **automatiquement « de confiance »** s'il contient un dossier `.nvim/`.
+
+---
+
+## 10. Twig, XML, YAML, JSON
+
+### `gd` dans la config Symfony
+
+Dans les fichiers `xml`, `yaml` et `twig` d'une appli Symfony, `gd` cherche dans cet ordre :
+
+1. sur un **nom de template** (`'@Ns/dossier/page.html.twig'`) → le template, résolu sur le
+   disque (`templates/bundles/<Ns>Bundle`, `ide-twig.json`, puis le dossier du bundle) ;
+2. sur une **classe** (nom complet) dans un `services.xml` → la classe, via le PSR-4 du
+   `composer.json` ;
+3. en YAML/Twig → symfony-lsp (services, paramètres, routes) ;
+4. sinon → le `gd` du serveur (en Twig : twiggy, pour blocks, macros, templates vendor).
+
+> En XML, symfony-lsp ne propose rien au curseur (le XML n'est qu'une *cible* de
+> navigation) : d'où la résolution PSR-4.
+
+Quand plusieurs serveurs répondent (Intelephense et symfony-lsp en PHP) ou qu'une classe
+existe en plusieurs exemplaires, `gd` garde l'emplacement du projet courant et saute
+directement ; une liste n'apparaît que s'il reste plusieurs choix réels.
+
+### Les outils
+
+- **Twig** : twiggy-language-server (fonctions, filtres, globales et routes de l'appli
+  réelle, via `bin/console debug:twig` / `debug:router` dans le conteneur), coloration HTML
+  dans les templates, **Twig-CS-Fixer** en lint partout, en formatage seulement si le projet
+  a `.twig-cs-fixer(.dist).php`.
+- **XML** : lemminx valide les `Resources/config/*.xml` contre les XSD Symfony et complète
+  balises et attributs.
+- **YAML / JSON** : yaml-language-server et json-lsp, avec les schémas du catalogue
+  SchemaStore (`composer.json`, `package.json`, `docker-compose.yml`, `.gitlab-ci.yml`…).
+  Les tags Symfony (`!tagged_iterator`, `!php/const`…) sont reconnus.
+
+---
+
+## 11. Tests et débogage
+
+### Tests (neotest)
+
+PHPUnit et Pest du projet, **dans le conteneur** si le projet est dockerisé : neotest le
+lance via `bin/docker-phpunit`, qui traduit les chemins et rapatrie le rapport. Seuls les
+fichiers ouverts sont analysés (pas tout le dépôt).
+
+| Raccourci     | Action                     |
+| ------------- | -------------------------- |
+| `<leader>ptn` | Test le plus proche        |
+| `<leader>pta` | Tous les tests du fichier  |
+| `<leader>pts` | Panneau résumé             |
+| `<leader>pto` | Sortie du test             |
+
+### Débogage (nvim-dap)
+
+1. **Point d'arrêt** : `<leader>db` (**persistant** : il survit au redémarrage),
+   `<leader>dB` conditionnel. En PHP, `<leader>pdb` / `<leader>pdB` font de même.
+2. **Lancer** : `<leader>dc`. En PHP, la configuration « Listen for Xdebug » écoute le
+   port 9003 ; déclencher ensuite la requête ou la commande avec Xdebug actif. Projet
+   dockerisé : la correspondance des chemins conteneur ↔ hôte est posée d'office.
+3. **Avancer** : `<leader>dO` pas suivant, `<leader>di` entrer, `<leader>do` sortir,
+   `<leader>dC` jusqu'au curseur, `<leader>dt` arrêter, `<leader>dr` REPL,
+   `<leader>de` évaluer.
+4. **Interface** : compacte à l'ouverture d'une session (variables + points d'arrêt),
+   `<leader>du` pour la basculer, `<leader>dU` complète (pile, surveillance, console).
+
+---
+
+## 12. Config par projet : le dossier `.nvim/`
+
+Un dossier **`.nvim/`** à la racine d'un projet active plusieurs comportements :
+
+| Fichier               | Rôle                                                                   |
+| --------------------- | ---------------------------------------------------------------------- |
+| *(le dossier lui-même)* | Le projet est automatiquement « de confiance » pour symfony-lsp      |
+| `.nvim/docker.lua`    | Projet dockerisé : les outils tournent **dans le conteneur** (§9)      |
+| `.nvim/dap.lua`       | Configurations de débogage du projet, à la place de celles par défaut |
+
+```lua
+-- .nvim/docker.lua (lama)
+return {
+  service = "php",                  -- service docker compose des outils PHP
+  container_root = "/var/app/lama", -- racine du projet dans ce conteneur
+  -- node = { service = "…", container_root = "…" }, -- outils JS ailleurs (facultatif)
+  -- node = false,                                   -- outils JS sur l'hôte
+}
+```
+
+Sans entrée `node`, les outils JS vont dans le conteneur PHP s'il contient Node (c'est le
+cas de lama : Node et yarn installés par nvm dans l'image `php`).
+
+```lua
+-- .nvim/dap.lua : une table par filetype, ou une fonction function(dap) … end
+return {
+  php = {
+    { type = "php", request = "launch", name = "lama", port = 9003,
+      pathMappings = { ["/var/app/lama"] = "${workspaceFolder}" } },
+  },
+}
+```
+
+---
+
+## 13. Claude : IA et agents parallèles
 
 ### a) Lancement ponctuel (onglet terminal)
 
@@ -378,7 +542,7 @@ Travailler sur plusieurs branches en même temps, avec **un Claude dédié à ch
 
 ---
 
-## 10. Entretien de la config
+## 14. Entretien de la config
 
 - **Où** : branche `sans-lazyvim` du dépôt nvim-config, montée en worktree dans
   `~/dotfiles/neovimanu/.config/neovimanu` (`~/.config/neovimanu` y pointe).
@@ -408,7 +572,7 @@ Travailler sur plusieurs branches en même temps, avec **un Claude dédié à ch
 
 ---
 
-## 11. Ajouter un langage
+## 15. Ajouter un langage
 
 Un langage = un fichier `lua/manu/lang/<langage>.lua`, requis à la fin de `init.lua`.
 Modèle : `lua/manu/lang/lua.lua`, dans cet ordre :
@@ -447,7 +611,7 @@ Puis : raccourcis propres au langage dans une section `(buffer)` de `KEYMAPS.md`
 
 ---
 
-## 12. Dépannage
+## 16. Dépannage
 
 | Symptôme                                   | À vérifier                                                     |
 | ------------------------------------------ | -------------------------------------------------------------- |
@@ -459,4 +623,9 @@ Puis : raccourcis propres au langage dans une section `(buffer)` de `KEYMAPS.md`
 | Un raccourci a changé après une mise à jour | `tests/run.sh keymaps` nomme le plugin et la touche           |
 | `<leader>od` : conteneurs du projet absents | Y a-t-il un `docker-compose.yml` à la racine ? Le démon Docker tourne-t-il ? |
 | Les raccourcis Claude visent le mauvais agent | Vérifier le dossier de l'onglet : `:pwd`                    |
+| PHP : rien ne se formate / pas de PHPStan  | `:Projet` : config trouvée ? conteneur en marche ? commande exacte |
+| `gd` Symfony vide en YAML                  | `<leader>Si` (index de confiance ? runtime prêt ?), puis `<leader>SR` |
+| `gd` ne trouve pas une classe en XML       | Le namespace est-il dans l'`autoload` PSR-4 du `composer.json` ? |
+| Twig : fonctions de l'appli inconnues      | Projet dockerisé : `.nvim/docker.lua` présent, conteneur lancé ? |
+| Un test PHP ne se lance pas                | Conteneur en marche ? `phpunit.xml(.dist)` à la racine ?       |
 | Santé générale                             | `:checkhealth`                                                 |
