@@ -238,6 +238,34 @@ function M.node_bin(root, name)
   return nil
 end
 
+--- Commande d'un outil pour un projet : binaire du projet (bin-dir Composer, ou
+--- node_modules/.bin pour runtime « node »), dans le conteneur du runtime s'il y en a un.
+--- Conteneur arrêté : argv = nil (+ message), jamais de repli hôte.
+--- opts.host_if_missing : outil absent du projet → version de Mason sur l'hôte, même si le
+--- projet a un conteneur (outil autonome que l'image n'a pas, ex. twig-cs-fixer pour lama).
+---@param root string
+---@param name string
+---@param args fun(path: fun(p: string): string): string[] chemins hôte passés par path()
+---@param opts? { runtime?: "php"|"node", host_if_missing?: boolean }
+---@return string[]|nil argv, table|nil docker, string? message
+function M.tool(root, name, args, opts)
+  opts = opts or {}
+  local runtime = opts.runtime or "php"
+  local rel = runtime == "node" and M.node_bin(root, name) or M.bin(root, name)
+  local docker = M.docker(root, runtime)
+  if docker and (rel or not opts.host_if_missing) then
+    local function path(p)
+      return M.to_container(p, root, docker)
+    end
+    local argv, msg = M.cmd(root, vim.list_extend({ rel or name }, args(path)), runtime)
+    return argv, docker, msg
+  end
+  local identity = function(p)
+    return p
+  end
+  return vim.list_extend({ rel and (root .. "/" .. rel) or name }, args(identity)), nil
+end
+
 -- ─── :Projet ───────────────────────────────────────────────────────────────
 
 ---@type table<string, fun(bufnr: integer): string|nil>

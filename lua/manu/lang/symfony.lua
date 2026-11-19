@@ -1,5 +1,10 @@
 -- Symfony : serveur symfony-lsp, navigation `gd` config → classe / template, console,
--- Composer. Twig, XML et YAML de config : plus bas (Task 5 du plan 2).
+-- Composer, et les langages de la config Symfony :
+--   Twig : twiggy-language-server (fonctions/filtres/globals de l'appli via bin/console
+--          debug:twig, dans le conteneur : lsp/twiggy_language_server.lua + bin/twiggy-php),
+--          Twig-CS-Fixer en lint partout, en formatage seulement avec config projet.
+--   XML  : lemminx (validation XSD des services.xml, doctrine-mapping…, complétion, format).
+--   YAML / JSON génériques : lang/data.lua.
 --
 -- `gd` : posé sur FileType, donc avant LspAttach ; lsp.lua ne pose pas le sien sur un
 -- buffer qui en a déjà un (plus de registre de raccourcis comme avec Snacks).
@@ -9,8 +14,87 @@
 local project = require("manu.project")
 local jump = require("manu.symfony_goto")
 
-require("manu.mason").ensure({ "symfony-lsp" })
-vim.lsp.enable({ "symfony_lsp" })
+require("manu.mason").ensure({ "symfony-lsp", "twiggy-language-server", "twig-cs-fixer", "lemminx" })
+
+vim.lsp.config("lemminx", {
+  filetypes = { "xml", "xsd", "xsl", "xslt", "svg" },
+  settings = {
+    xml = {
+      -- Les XSD Symfony sont référencés par URL (http://symfony.com/…) : sans téléchargement,
+      -- pas de validation. lemminx les met en cache après le premier accès.
+      downloadExternalResources = { enabled = true },
+      -- Ne pas résoudre les entités externes d'un document (XXE).
+      validation = { enabled = true, resolveExternalEntities = false },
+      format = { enabled = true, splitAttributes = false, joinCDATALines = false, preserveEmptyContent = true },
+      completion = { autoCloseTags = true },
+    },
+  },
+})
+
+vim.lsp.enable({ "symfony_lsp", "twiggy_language_server", "lemminx" })
+
+-- Twig-CS-Fixer : binaire du projet dans le conteneur s'il l'a, sinon celui de Mason sur
+-- l'hôte (outil autonome, que l'image du projet n'a pas forcément).
+local TWIG_CS_CONFIGS = { ".twig-cs-fixer.php", ".twig-cs-fixer.dist.php" }
+local function twig_cs_argv(bufnr, args)
+  local root = project.root(bufnr) or vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr))
+  local argv = project.tool(root, "twig-cs-fixer", args, { host_if_missing = true })
+  return argv, root
+end
+
+local lint = require("lint")
+lint.linters.twig_cs_fixer_project = function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local base = require("lint.linters.twig-cs-fixer")
+  local argv, root = twig_cs_argv(bufnr, function(path)
+    return { "lint", "--report", "github", "--debug", path(vim.api.nvim_buf_get_name(bufnr)) }
+  end)
+  argv = argv or { "false" }
+  return vim.tbl_extend("force", base, {
+    cmd = argv[1],
+    args = vim.list_slice(argv, 2),
+    cwd = root,
+    append_fname = false,
+  })
+end
+lint.linters_by_ft.twig = { "twig_cs_fixer_project" }
+
+require("conform").formatters.twig_cs_fixer_project = {
+  condition = function(_, ctx)
+    return require("manu.format").project_has(TWIG_CS_CONFIGS, ctx.buf)
+      and twig_cs_argv(ctx.buf, function()
+        return {}
+      end) ~= nil
+  end,
+  command = function(_, ctx)
+    return (twig_cs_argv(ctx.buf, function()
+      return {}
+    end) or { "false" })[1]
+  end,
+  args = function(_, ctx)
+    local argv = twig_cs_argv(ctx.buf, function(path)
+      return { "lint", "--fix", "--no-interaction", "--quiet", path(ctx.filename) }
+    end)
+    return vim.list_slice(argv or {}, 2)
+  end,
+  cwd = function(_, ctx)
+    return project.root(ctx.buf)
+  end,
+  stdin = false,
+}
+require("conform").formatters_by_ft.twig = { "twig_cs_fixer_project" }
+
+require("manu.treesitter").install({ "twig", "html", "xml" })
+
+project.report("twig : lint", function(bufnr)
+  if vim.bo[bufnr].filetype ~= "twig" then
+    return nil
+  end
+  local argv = twig_cs_argv(bufnr, function(path)
+    return { "lint", path(vim.api.nvim_buf_get_name(bufnr)) }
+  end)
+  return argv and table.concat(argv, " ") or "conteneur arrêté"
+end)
 
 -- ─── Commandes du serveur ──────────────────────────────────────────────────
 

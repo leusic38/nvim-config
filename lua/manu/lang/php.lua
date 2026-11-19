@@ -64,26 +64,12 @@ local function php_root(bufnr)
   return project.root(bufnr) or vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr))
 end
 
---- Commande d'un outil PHP pour ce buffer : binaire du projet, dans le conteneur s'il y en a
---- un (sans repli hôte s'il est arrêté : argv = nil), sinon sur l'hôte (projet, puis Mason).
----@param bufnr integer
----@param tool string
----@param args fun(path: fun(p: string): string): string[] chemins hôte passés par path()
+--- Commande d'un outil PHP pour ce buffer (voir manu.project.tool).
 ---@return string[]|nil argv, string root, table|nil docker
 local function tool_cmd(bufnr, tool, args)
   local root = php_root(bufnr)
-  local docker = project.docker(root)
-  local rel = project.bin(root, tool)
-  if docker then
-    local function path(p)
-      return project.to_container(p, root, docker)
-    end
-    return (project.cmd(root, vim.list_extend({ rel or tool }, args(path)))), root, docker
-  end
-  local identity = function(p)
-    return p
-  end
-  return vim.list_extend({ rel and (root .. "/" .. rel) or tool }, args(identity)), root, nil
+  local argv, docker = project.tool(root, tool, args)
+  return argv, root, docker
 end
 
 -- php-cs-fixer : seulement si le projet a sa config (règle du formatage).

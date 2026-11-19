@@ -1,5 +1,9 @@
 {
   "plugins": {
+    "SchemaStore.nvim": {
+      "rev": "a0479e8a6d5d3471899d2be630fd207f4804dc7d",
+      "src": "https://github.com/b0o/SchemaStore.nvim"
+    },
     "async.nvim": {
       "rev": "028d843a892b4920d8306216369aeee9fbcebae5",
       "src": "https://github.com/lewis6991/async.nvim"

@@ -88,4 +88,29 @@ term.run = run
 project.container_running = running
 t.eq(captured, { "docker", "compose", "exec", "-T", "-w", "/var/app/x", "php", "php", "bin/console", "debug:router" }, "console dans le conteneur")
 
+-- Twig, XML, YAML, JSON
+t.eq(vim.lsp.config.twiggy_language_server.settings.twiggy.framework, "symfony", "twiggy : framework symfony")
+t.eq(vim.fn.executable(cfg .. "/bin/twiggy-php"), 1, "bin/twiggy-php exécutable")
+vim.cmd("edit " .. fixture .. "/templates/base.html.twig")
+t.ok(t.wait(function()
+  return vim.treesitter.get_parser(0, "twig", { error = false }) ~= nil
+end, 60000), "parser twig")
+t.eq(require("lint").linters_by_ft.twig, { "twig_cs_fixer_project" }, "twig-cs-fixer en lint")
+local tw = require("conform").formatters.twig_cs_fixer_project
+t.ok(not tw.condition(tw, { buf = 0, filename = vim.api.nvim_buf_get_name(0), dirname = fixture .. "/templates" }), "twig : pas de formatage sans config Twig-CS-Fixer")
+t.eq(vim.lsp.config.lemminx.settings.xml.validation.resolveExternalEntities, false, "lemminx : pas d'entités externes")
+t.ok(vim.lsp.config.lemminx.settings.xml.downloadExternalResources.enabled, "lemminx : XSD téléchargés")
+vim.cmd("edit " .. fixture .. "/config/services.yaml")
+t.ok(t.wait(function()
+  return #vim.lsp.get_clients({ bufnr = 0, name = "yamlls" }) == 1
+end, 60000), "yamlls attaché")
+local yc = vim.lsp.get_clients({ bufnr = 0, name = "yamlls" })[1]
+t.ok(yc and next(vim.tbl_get(yc.config.settings, "yaml", "schemas") or {}) ~= nil, "yamlls : schémas SchemaStore")
+vim.cmd("edit " .. fixture .. "/composer.json")
+t.ok(t.wait(function()
+  return #vim.lsp.get_clients({ bufnr = 0, name = "jsonls" }) == 1
+end, 60000), "jsonls attaché")
+local jc = vim.lsp.get_clients({ bufnr = 0, name = "jsonls" })[1]
+t.ok(jc and #(vim.tbl_get(jc.config.settings, "json", "schemas") or {}) > 0, "jsonls : schémas SchemaStore")
+
 t.finish()
