@@ -1,5 +1,5 @@
 -- Tests (neotest : PHPUnit, Pest, dans le conteneur via bin/docker-phpunit) et phpactor.
--- La partie débogage est ajoutée par la Task 7.
+-- Débogage : nvim-dap, interface, points d'arrêt persistants, Xdebug.
 local t = require("helpers")
 local project = require("manu.project")
 local cfg = vim.fn.stdpath("config")
@@ -71,6 +71,54 @@ for _, k in ipairs({
   "<leader>pv", "<leader>pc", "<leader>pf", "<leader>pe", "<leader>pr", "<leader>ps",
 }) do
   t.ok(maps[k], "raccourci " .. k)
+end
+
+-- ─── Débogage ──────────────────────────────────────────────────────────────
+local dap = require("dap")
+t.ok(package.loaded.dapui ~= nil and package.loaded["persistent-breakpoints"] ~= nil, "dap-ui et breakpoints persistants")
+t.eq(dap.adapters.php.command, "node", "adaptateur php : node")
+t.eq(vim.fn.filereadable(dap.adapters.php.args[1]), 1, "php-debug-adapter installé (Mason)")
+t.eq(dap.configurations.php[1].name, "Listen for Xdebug", "config Xdebug par défaut")
+t.eq(dap.configurations.php[1].port, 9003, "port 9003")
+t.eq(vim.fn.sign_getdefined("DapBreakpoint")[1].text, "● ", "signe de point d'arrêt")
+
+-- Projet dockerisé : correspondance des chemins posée d'office.
+local running2 = project.container_running
+vim.cmd.cd(proj)
+t.eq(dap.configurations.php[1].pathMappings, { ["/var/app/x"] = proj }, "Xdebug : pathMappings conteneur → hôte")
+-- .nvim/dap.lua du projet : prioritaire.
+vim.fn.writefile({ 'return { php = { { type = "php", request = "launch", name = "lama" } } }' }, proj .. "/.nvim/dap.lua")
+vim.cmd.cd(cfg)
+vim.cmd.cd(proj)
+t.eq(dap.configurations.php[1].name, "lama", ".nvim/dap.lua appliqué au :cd")
+vim.cmd.cd(cfg)
+t.eq(dap.configurations.php[1].name, "Listen for Xdebug", "défauts rétablis hors du projet")
+project.container_running = running2
+
+-- Point d'arrêt via <leader>db (persistant)
+vim.cmd("edit " .. fixture .. "/src/Service/Greeter.php")
+vim.api.nvim_win_set_cursor(0, { 11, 0 })
+local gmaps = {}
+for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
+  gmaps[vim.fn.keytrans(m.lhsraw):gsub("^<Space>", "<leader>")] = m
+end
+gmaps["<leader>db"].callback()
+local bps = require("dap.breakpoints").get()[vim.api.nvim_get_current_buf()] or {}
+t.eq(#bps, 1, "<leader>db pose un point d'arrêt")
+gmaps["<leader>db"].callback()
+for _, k in ipairs({
+  "<leader>dB", "<leader>db", "<leader>dc", "<leader>da", "<leader>dC", "<leader>dg", "<leader>di",
+  "<leader>dj", "<leader>dk", "<leader>dl", "<leader>do", "<leader>dO", "<leader>dP", "<leader>dr",
+  "<leader>ds", "<leader>dt", "<leader>dw", "<leader>du", "<leader>dU", "<leader>de",
+}) do
+  t.ok(gmaps[k], "raccourci global " .. k)
+end
+local bmaps = {}
+for _, m in ipairs(vim.api.nvim_buf_get_keymap(0, "n")) do
+  bmaps[vim.fn.keytrans(m.lhsraw):gsub("^<Space>", "<leader>")] = true
+end
+for _, k in ipairs({ "<leader>pdb", "<leader>pdB", "<leader>pdc", "<leader>pds", "<leader>pdi", "<leader>pdo", "<leader>pdr", "<leader>pdt" }) do
+  t.ok(bmaps[k], "raccourci PHP " .. k)
 end
 
 t.finish()

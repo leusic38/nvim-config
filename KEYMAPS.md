@@ -285,6 +285,34 @@ En recherche (`/`), `<C-s>` bascule les étiquettes flash.
 | `<leader>ar` | n | Revue de code par Claude | lua/manu/ai.lua |
 | `<leader>yc` | nx | Copier pour Claude (chemin + lignes) | lua/manu/ai.lua |
 
+## Débogage (nvim-dap)
+
+Points d'arrêt conservés d'une session à l'autre. Configurations par langage, remplaçables
+par projet dans `.nvim/dap.lua`. L'interface compacte s'ouvre au démarrage d'une session.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>db` | n | Point d'arrêt (basculer) | lua/manu/debug.lua |
+| `<leader>dB` | n | Point d'arrêt conditionnel | lua/manu/debug.lua |
+| `<leader>dc` | n | Lancer / continuer | lua/manu/debug.lua |
+| `<leader>da` | n | Lancer avec des arguments | lua/manu/debug.lua |
+| `<leader>dC` | n | Continuer jusqu'au curseur | lua/manu/debug.lua |
+| `<leader>dg` | n | Aller à la ligne (sans exécuter) | lua/manu/debug.lua |
+| `<leader>di` | n | Entrer (step into) | lua/manu/debug.lua |
+| `<leader>dO` | n | Pas suivant (step over) | lua/manu/debug.lua |
+| `<leader>do` | n | Sortir (step out) | lua/manu/debug.lua |
+| `<leader>dj` | n | Descendre dans la pile | lua/manu/debug.lua |
+| `<leader>dk` | n | Remonter dans la pile | lua/manu/debug.lua |
+| `<leader>dl` | n | Relancer la dernière session | lua/manu/debug.lua |
+| `<leader>dP` | n | Pause | lua/manu/debug.lua |
+| `<leader>dr` | n | REPL (basculer) | lua/manu/debug.lua |
+| `<leader>ds` | n | Session courante | lua/manu/debug.lua |
+| `<leader>dt` | n | Arrêter | lua/manu/debug.lua |
+| `<leader>dw` | n | Valeur sous le curseur (widget) | lua/manu/debug.lua |
+| `<leader>de` | nx | Évaluer l'expression | lua/manu/debug.lua |
+| `<leader>du` | n | Interface compacte (variables + points d'arrêt) | lua/manu/debug.lua |
+| `<leader>dU` | n | Interface complète (+ pile, surveillance, console) | lua/manu/debug.lua |
+
 ## Interface / bascules
 
 | Touche | Mode | Action | Fichier |
@@ -437,6 +465,7 @@ Affichée par `nn` seul ou `nn <dossier>` (Neovim se place alors dans le dossier
 ## PHP (buffer)
 
 Tests : PHPUnit/Pest du projet, dans le conteneur (`bin/docker-phpunit`).
+Xdebug : port 9003 ; projet dockerisé → correspondance des chemins conteneur ↔ hôte automatique.
 Formatage à l'enregistrement : php-cs-fixer si le projet a `.php-cs-fixer(.dist).php`.
 Analyse à l'enregistrement : PHPStan si le projet a `phpstan(.dist).neon`. Les deux tournent
 dans le conteneur du projet (`.nvim/docker.lua`), avec les binaires du projet ; `:Projet`
@@ -457,6 +486,14 @@ montre la commande exacte.
 | `<leader>pp` | n | phpactor : copier le fichier | lua/manu/lang/php.lua |
 | `<leader>pT` | n | phpactor : transformer | lua/manu/lang/php.lua |
 | `<leader>pi` | n | phpactor : importer la classe | lua/manu/lang/php.lua |
+| `<leader>pdb` | n | Point d'arrêt | lua/manu/lang/php.lua |
+| `<leader>pdB` | n | Point d'arrêt conditionnel | lua/manu/lang/php.lua |
+| `<leader>pdc` | n | Continuer | lua/manu/lang/php.lua |
+| `<leader>pds` | n | Pas suivant | lua/manu/lang/php.lua |
+| `<leader>pdi` | n | Entrer | lua/manu/lang/php.lua |
+| `<leader>pdo` | n | Sortir | lua/manu/lang/php.lua |
+| `<leader>pdr` | n | REPL | lua/manu/lang/php.lua |
+| `<leader>pdt` | n | Arrêter | lua/manu/lang/php.lua |
 | `<leader>pv` | n | Snippet : en-tête `declare(strict_types=1)` | lua/manu/lang/php.lua |
 | `<leader>pc` | n | Snippet : classe | lua/manu/lang/php.lua |
 | `<leader>pf` | n | Snippet : fonction | lua/manu/lang/php.lua |

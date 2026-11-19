@@ -302,3 +302,86 @@ vim.api.nvim_create_autocmd("FileType", {
     bmap("<leader>ps", "i#[Service]<cr>class Service<cr>{<cr><cr>}<esc>2k$FSa", "PHP : modèle de service")
   end,
 })
+
+-- ─── Débogage : Xdebug (php-debug-adapter) ─────────────────────────────────
+
+require("manu.mason").ensure({ "php-debug-adapter" })
+local debug = require("manu.debug")
+debug.adapter("php", {
+  type = "executable",
+  command = "node",
+  args = { vim.fn.stdpath("data") .. "/mason/packages/php-debug-adapter/extension/out/phpDebug.js" },
+})
+-- Évalué au démarrage et à chaque :cd : projet dockerisé → correspondance des chemins
+-- conteneur ↔ hôte posée d'office (avant : à écrire dans .nvim/dap.lua).
+debug.defaults("php", function()
+  local listen = {
+    type = "php",
+    request = "launch",
+    name = "Listen for Xdebug",
+    port = 9003,
+    log = false,
+    localSourceRoot = "${workspaceFolder}",
+    serverSourceRoot = "${workspaceFolder}",
+  }
+  -- Racine du dossier de travail (:cd, onglet de worktree), pas du buffer affiché.
+  local composer = vim.fs.find("composer.json", { path = assert(vim.uv.cwd()), upward = true })[1]
+  local root = composer and vim.fs.dirname(composer)
+  local docker = project.docker(root)
+  if docker then
+    listen.serverSourceRoot = docker.container_root
+    listen.localSourceRoot = root
+    listen.pathMappings = { [docker.container_root] = root }
+  end
+  return {
+    listen,
+    {
+      type = "php",
+      request = "launch",
+      name = "Launch currently open script",
+      program = "${file}",
+      cwd = "${fileDirname}",
+      port = 0,
+      runtimeArgs = { "-dxdebug.start_with_request=yes" },
+      env = { XDEBUG_MODE = "debug,develop", XDEBUG_CONFIG = "client_port=${port}" },
+    },
+  }
+end)
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("manu_php_debug_keymaps", { clear = true }),
+  pattern = "php",
+  callback = function(ev)
+    local function bmap(lhs, fn, desc)
+      vim.keymap.set("n", lhs, fn, { buffer = ev.buf, desc = desc })
+    end
+    local function dap()
+      return require("dap")
+    end
+    -- Perso (ancien php-keymaps.lua) : doublons PHP des <leader>d… globaux.
+    bmap("<leader>pdb", function()
+      require("persistent-breakpoints.api").toggle_breakpoint()
+    end, "PHP : point d'arrêt")
+    bmap("<leader>pdB", function()
+      require("persistent-breakpoints.api").set_conditional_breakpoint()
+    end, "PHP : point d'arrêt conditionnel")
+    bmap("<leader>pdc", function()
+      dap().continue()
+    end, "PHP : continuer")
+    bmap("<leader>pds", function()
+      dap().step_over()
+    end, "PHP : pas suivant")
+    bmap("<leader>pdi", function()
+      dap().step_into()
+    end, "PHP : entrer")
+    bmap("<leader>pdo", function()
+      dap().step_out()
+    end, "PHP : sortir")
+    bmap("<leader>pdr", function()
+      dap().repl.open()
+    end, "PHP : REPL")
+    bmap("<leader>pdt", function()
+      dap().terminate()
+    end, "PHP : arrêter")
+  end,
+})

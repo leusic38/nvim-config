@@ -85,6 +85,18 @@
       "rev": "40e53c4294726a16f34f1a383a94c570553c6d46",
       "src": "https://github.com/olimorris/neotest-phpunit"
     },
+    "nvim-dap": {
+      "rev": "cfa2d58f4537aca6ca83e2de1a0d9f1491121264",
+      "src": "https://github.com/mfussenegger/nvim-dap"
+    },
+    "nvim-dap-ui": {
+      "rev": "cc9dd33aade7f20bae414d0cba163bc60d4d4b43",
+      "src": "https://github.com/rcarriga/nvim-dap-ui"
+    },
+    "nvim-dap-virtual-text": {
+      "rev": "fbdb48c2ed45f4a8293d0d483f7730d24467ccb6",
+      "src": "https://github.com/theHamsta/nvim-dap-virtual-text"
+    },
     "nvim-lint": {
       "rev": "52107ce2076a27a285af781248e2c59bad817cd0",
       "src": "https://github.com/mfussenegger/nvim-lint"
@@ -123,6 +135,10 @@
       "rev": "c45ff862b53ce07a853a753fb0b33e148dbb99d2",
       "src": "https://github.com/folke/persistence.nvim",
       "version": "3.0.0 - 4.0.0"
+    },
+    "persistent-breakpoints.nvim": {
+      "rev": "d1656221836207787b8a7969cc2dc72668c4742a",
+      "src": "https://github.com/Weissle/persistent-breakpoints.nvim"
     },
     "phpactor": {
       "rev": "f3569171db717d32fd4bc3b3e8ddd87fda2eea08",

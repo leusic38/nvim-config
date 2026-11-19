@@ -111,6 +111,8 @@ wk.setup({
       { "<leader>p", group = "PHP" },
       { "<leader>pl", group = "PHP : format / analyse" },
       { "<leader>pt", group = "PHP : tests" },
+      { "<leader>pd", group = "PHP : débogage" },
+      { "<leader>d", group = "débogage" },
       { "<leader>gh", group = "hunks" },
       { "<leader>t", group = "terminal" },
       { "<leader>b", group = "buffers" },
