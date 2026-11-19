@@ -93,6 +93,10 @@
       "rev": "b0c265743c877058068dbc40d104ea5d40e6b257",
       "src": "https://github.com/marilari88/neotest-vitest"
     },
+    "nui.nvim": {
+      "rev": "10fc361835c856ba4233ef5ea135b919bf3dce97",
+      "src": "https://github.com/MunifTanjim/nui.nvim"
+    },
     "nvim-dap": {
       "rev": "cfa2d58f4537aca6ca83e2de1a0d9f1491121264",
       "src": "https://github.com/mfussenegger/nvim-dap"
@@ -138,6 +142,10 @@
     "oil.nvim": {
       "rev": "d3733d933833a0e59b813ecec99341527adf0c28",
       "src": "https://github.com/stevearc/oil.nvim"
+    },
+    "package-info.nvim": {
+      "rev": "b86cf49efc3855dd94afb33304b278f6f122bf1a",
+      "src": "https://github.com/vuki656/package-info.nvim"
     },
     "persistence.nvim": {
       "rev": "c45ff862b53ce07a853a753fb0b33e148dbb99d2",

@@ -534,7 +534,8 @@ Sur un fichier PHP d'un projet avec `composer.json`, dans le conteneur s'il y en
 ## JavaScript / TypeScript / Vue (buffer)
 
 Tests : Jest/Vitest du projet (`node_modules/.bin`), dans le conteneur Node s'il y en a un
-(lama : conteneur php, Node via nvm). Débogage : js-debug-adapter, sur l'hôte.
+(lama : conteneur php, Node via nvm). npm/yarn aussi, dans un terminal flottant (`q` le
+ferme). Débogage : js-debug-adapter, sur l'hôte.
 Serveurs : vtsls (JS/TS, et le `<script>` des `.vue`), vue_ls (templates Vue), ESLint
 (corrections appliquées à l'enregistrement, sauf formatage coupé par `<leader>uf`/`<leader>uF`).
 Touches posées à l'attache de vtsls (elles remplacent `gD` « déclaration » de lsp.lua) :
@@ -565,6 +566,37 @@ Touches posées à l'attache de vtsls (elles remplacent `gD` « déclaration » 
 | `<leader>jdo` | n | Sortir | lua/manu/lang/web.lua |
 | `<leader>jdr` | n | REPL | lua/manu/lang/web.lua |
 | `<leader>jdl` | n | Relancer la dernière session | lua/manu/lang/web.lua |
+| `<leader>jni` | n | `npm install` | lua/manu/lang/web.lua |
+| `<leader>jnr` | n | `npm run …` (demande le script) | lua/manu/lang/web.lua |
+| `<leader>jnt` | n | `npm test` | lua/manu/lang/web.lua |
+| `<leader>jnb` | n | `npm run build` | lua/manu/lang/web.lua |
+| `<leader>jnd` | n | `npm run dev` | lua/manu/lang/web.lua |
+| `<leader>yi` | n | `yarn install` | lua/manu/lang/web.lua |
+| `<leader>yr` | n | `yarn run …` (demande le script) | lua/manu/lang/web.lua |
+| `<leader>yt` | n | `yarn test` | lua/manu/lang/web.lua |
+| `<leader>yb` | n | `yarn build` | lua/manu/lang/web.lua |
+| `<leader>yd` | n | `yarn dev` | lua/manu/lang/web.lua |
+| `<leader>jc` | n | Snippet : composant (attend la suite : `<leader>jcl`…) | lua/manu/lang/web.lua |
+| `<leader>jf` | n | Snippet : fonction | lua/manu/lang/web.lua |
+| `<leader>ja` | n | Snippet : fonction async | lua/manu/lang/web.lua |
+| `<leader>jtc` | n | Snippet : classe TS | lua/manu/lang/web.lua |
+| `<leader>jti` | n | Snippet : interface TS | lua/manu/lang/web.lua |
+| `<leader>jcl` | n | `console.log()` | lua/manu/lang/web.lua |
+| `<leader>jce` | n | `console.error()` | lua/manu/lang/web.lua |
+| `<leader>jcw` | n | `console.warn()` | lua/manu/lang/web.lua |
+| `<leader>jci` | n | `console.info()` | lua/manu/lang/web.lua |
+
+### package.json (buffer)
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>jps` | n | Afficher les versions | lua/manu/lang/web.lua |
+| `<leader>jpc` | n | Masquer les versions | lua/manu/lang/web.lua |
+| `<leader>jpt` | n | Basculer les versions | lua/manu/lang/web.lua |
+| `<leader>jpu` | n | Mettre à jour le paquet | lua/manu/lang/web.lua |
+| `<leader>jpd` | n | Supprimer le paquet | lua/manu/lang/web.lua |
+| `<leader>jpi` | n | Installer un paquet | lua/manu/lang/web.lua |
+| `<leader>jpv` | n | Changer la version du paquet | lua/manu/lang/web.lua |
 | `<leader>vc` | n | Vue : actions de code | lua/manu/lang/web.lua |
 | `<leader>vr` | n | Vue : renommer | lua/manu/lang/web.lua |
 | `<leader>vs` | n | Vue : modèle SFC (Options API) | lua/manu/lang/web.lua |

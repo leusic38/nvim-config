@@ -355,6 +355,63 @@ for _, ft in ipairs({ "javascript", "typescript", "vue" }) do
   debug.defaults(ft, node_configs)
 end
 
+-- ─── package.json : package-info ───────────────────────────────────────────
+-- package-info.nvim : versions installées / dernières affichées dans package.json, mise à
+-- jour ou suppression d'un paquet sans quitter l'éditeur. nui.nvim : ses fenêtres.
+
+vim.pack.add({
+  "https://github.com/MunifTanjim/nui.nvim",
+  "https://github.com/vuki656/package-info.nvim",
+}, { confirm = false })
+require("package-info").setup({
+  colors = { up_to_date = "#3C4048", outdated = "#d19a66" },
+  icons = { enable = true, style = { up_to_date = "|  ", outdated = "|  " } },
+  autostart = true,
+  hide_up_to_date = false,
+  hide_unstable_versions = false,
+})
+
+vim.api.nvim_create_autocmd("BufEnter", {
+  group = vim.api.nvim_create_augroup("manu_package_info", { clear = true }),
+  pattern = "package.json",
+  callback = function(ev)
+    local pi = require("package-info")
+    local function bmap(lhs, fn, desc)
+      vim.keymap.set("n", lhs, fn, { buffer = ev.buf, desc = desc })
+    end
+    bmap("<leader>jps", pi.show, "JS : afficher les versions")
+    bmap("<leader>jpc", pi.hide, "JS : masquer les versions")
+    bmap("<leader>jpt", pi.toggle, "JS : basculer les versions")
+    bmap("<leader>jpu", pi.update, "JS : mettre à jour le paquet")
+    bmap("<leader>jpd", pi.delete, "JS : supprimer le paquet")
+    bmap("<leader>jpi", pi.install, "JS : installer un paquet")
+    bmap("<leader>jpv", pi.change_version, "JS : changer la version du paquet")
+  end,
+})
+
+-- ─── npm / yarn : terminal flottant, dans le conteneur Node s'il y en a un ──
+
+--- Lance argv à la racine du package.json, dans le conteneur Node du projet s'il y en a un.
+function M.run(bufnr, argv)
+  local root = vim.fs.root(bufnr, { "package.json" })
+  if not root then
+    return vim.notify("Pas de package.json au-dessus de ce fichier.", vim.log.levels.WARN)
+  end
+  local cmd, err = project.cmd(root, argv, "node")
+  if not cmd then
+    return vim.notify(err, vim.log.levels.WARN)
+  end
+  return require("manu.terminal").run(cmd, { cwd = root, title = table.concat(argv, " ") })
+end
+
+local function ask_run(bufnr, tool)
+  vim.ui.input({ prompt = tool .. " run " }, function(script)
+    if script and vim.trim(script) ~= "" then
+      M.run(bufnr, vim.list_extend({ tool, "run" }, vim.split(vim.trim(script), "%s+")))
+    end
+  end)
+end
+
 -- ─── Raccourcis JS / TS / Vue (buffer, perso) ──────────────────────────────
 
 vim.api.nvim_create_autocmd("FileType", {
@@ -408,6 +465,49 @@ vim.api.nvim_create_autocmd("FileType", {
     bmap("<leader>jdl", function()
       dap().run_last()
     end, "JS : relancer la dernière session")
+    -- npm / yarn (perso)
+    local b = ev.buf
+    bmap("<leader>jni", function()
+      M.run(b, { "npm", "install" })
+    end, "JS : npm install")
+    bmap("<leader>jnr", function()
+      ask_run(b, "npm")
+    end, "JS : npm run …")
+    bmap("<leader>jnt", function()
+      M.run(b, { "npm", "test" })
+    end, "JS : npm test")
+    bmap("<leader>jnb", function()
+      M.run(b, { "npm", "run", "build" })
+    end, "JS : npm run build")
+    bmap("<leader>jnd", function()
+      M.run(b, { "npm", "run", "dev" })
+    end, "JS : npm run dev")
+    bmap("<leader>yi", function()
+      M.run(b, { "yarn", "install" })
+    end, "JS : yarn install")
+    bmap("<leader>yr", function()
+      ask_run(b, "yarn")
+    end, "JS : yarn run …")
+    bmap("<leader>yt", function()
+      M.run(b, { "yarn", "test" })
+    end, "JS : yarn test")
+    bmap("<leader>yb", function()
+      M.run(b, { "yarn", "build" })
+    end, "JS : yarn build")
+    bmap("<leader>yd", function()
+      M.run(b, { "yarn", "dev" })
+    end, "JS : yarn dev")
+    -- Snippets perso (repris tels quels). <leader>jc attend timeoutlen avant de partir :
+    -- c'est aussi le début de <leader>jcl/jce/jcw/jci.
+    bmap("<leader>jc", "i// Component template<cr>export default {<cr>  name: '',<cr>  data() {<cr>    return {<cr>      <cr>    }<cr>  },<cr>  methods: {<cr>    <cr>  }<cr>}<esc>", "JS : modèle de composant")
+    bmap("<leader>jf", "i// Function template<cr>const functionName = () => {<cr>  <cr>}<esc>", "JS : modèle de fonction")
+    bmap("<leader>ja", "i// Async function template<cr>const asyncFunction = async () => {<cr>  try {<cr>    <cr>  } catch (error) {<cr>    console.error(error)<cr>  }<cr>}<esc>", "JS : modèle de fonction async")
+    bmap("<leader>jtc", "i// TypeScript class template<cr>class ClassName {<cr>  private property: string;<cr><cr>  constructor(property: string) {<cr>    this.property = property;<cr>  }<cr><cr>  public method(): void {<cr>    <cr>  }<cr>}<esc>", "JS : modèle de classe TS")
+    bmap("<leader>jti", "i// TypeScript interface template<cr>interface InterfaceName {<cr>  property: string;<cr>  method(): void;<cr>}<esc>", "JS : modèle d'interface TS")
+    bmap("<leader>jcl", "iconsole.log()<esc>", "JS : console.log")
+    bmap("<leader>jce", "iconsole.error()<esc>", "JS : console.error")
+    bmap("<leader>jcw", "iconsole.warn()<esc>", "JS : console.warn")
+    bmap("<leader>jci", "iconsole.info()<esc>", "JS : console.info")
     bmap("<leader>jle", function()
       if not M.eslint_fix(ev.buf) then
         vim.notify("ESLint n'est pas attaché à ce buffer (pas de config ESLint ?)", vim.log.levels.WARN)
