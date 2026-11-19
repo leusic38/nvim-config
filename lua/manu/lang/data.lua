@@ -1,7 +1,8 @@
 -- JSON et YAML génériques (composer.json, package.json, docker-compose, CI GitLab, Ansible…).
 -- SchemaStore.nvim : catalogue de schémas JSON/YAML ; les serveurs valident et complètent
 -- un fichier selon son nom (composer.json, .gitlab-ci.yml, docker-compose.yml…).
--- Formatage (Prettier, seulement si le projet l'a configuré) : plan 3.
+-- Formatage : Prettier, seulement si le projet l'a configuré (lang/web.lua) ; YAML toujours
+-- à 2 espaces.
 
 vim.pack.add({ "https://github.com/b0o/SchemaStore.nvim" }, { confirm = false })
 
@@ -35,3 +36,7 @@ vim.lsp.config("yamlls", {
 vim.lsp.enable({ "jsonls", "yamlls" })
 
 require("manu.treesitter").install({ "json", "yaml", "xml" })
+
+for _, ft in ipairs({ "json", "jsonc", "yaml" }) do
+  require("conform").formatters_by_ft[ft] = { "prettier_project" }
+end

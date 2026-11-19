@@ -556,6 +556,18 @@ Touches posées à l'attache de vtsls (elles remplacent `gD` « déclaration » 
 | `<leader>vs` | n | Vue : modèle SFC (Options API) | lua/manu/lang/web.lua |
 | `<leader>v3` | n | Vue : modèle SFC (Composition API) | lua/manu/lang/web.lua |
 
+## Markdown (buffer)
+
+Lint markdownlint toujours actif (config de neovimanu). Formatage à l'enregistrement :
+Prettier si le projet l'a configuré, puis markdownlint `--fix` si le projet a sa config.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>mf` | n | Formater | lua/manu/lang/markdown.lua |
+| `<leader>ml` | n | Lancer markdownlint | lua/manu/lang/markdown.lua |
+| `<leader>mc` | n | Formater puis linter | lua/manu/lang/markdown.lua |
+| `<leader>ma` | n | Actions de code | lua/manu/lang/markdown.lua |
+
 ## Fenêtres utilitaires (buffer)
 
 | Touche | Mode | Action | Fichier |

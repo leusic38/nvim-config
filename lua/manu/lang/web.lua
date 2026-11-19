@@ -6,6 +6,9 @@
 -- vue_ls : serveur Vue (templates, styles), en mode hybride : il délègue le TypeScript à vtsls.
 -- ESLint : serveur eslint-lsp ; corrections appliquées à l'enregistrement, sauf si le
 --          formatage est coupé (<leader>uf / <leader>uF).
+-- cssls / html : serveurs CSS/SCSS/LESS et HTML.
+-- Prettier : seulement si le projet a une config Prettier (règle du formatage) ; celui du
+--          projet (node_modules/.bin), dans le conteneur Node s'il y en a un, sinon Mason.
 -- Les serveurs restent sur l'hôte et lisent node_modules du projet.
 -- Raccourcis propres à vtsls, posés à son attache (après ceux de lsp.lua : son `gD`, la
 -- définition « source », remplace « déclaration »).
@@ -14,7 +17,7 @@ local project = require("manu.project")
 
 local M = {}
 
-require("manu.mason").ensure({ "vtsls", "vue-language-server", "eslint-lsp" })
+require("manu.mason").ensure({ "vtsls", "vue-language-server", "eslint-lsp", "css-lsp", "html-lsp", "prettier" })
 
 -- Indices inline (perso) : noms de paramètres pour les littéraux en TS, partout en JS.
 local function inlay_hints(parameter_names)
@@ -76,7 +79,70 @@ vim.lsp.config("vtsls", {
 vim.lsp.config("eslint", {
   settings = { workingDirectory = { mode = "auto" }, format = true },
 })
-vim.lsp.enable({ "vtsls", "vue_ls", "eslint" })
+vim.lsp.enable({ "vtsls", "vue_ls", "eslint", "cssls", "html" })
+
+-- ─── Prettier, seulement si le projet l'a configuré ────────────────────────
+
+local PRETTIER_CONFIGS = {
+  ".prettierrc", ".prettierrc.json", ".prettierrc.yml", ".prettierrc.yaml", ".prettierrc.json5",
+  ".prettierrc.js", ".prettierrc.cjs", ".prettierrc.mjs", ".prettierrc.ts", ".prettierrc.toml",
+  "prettier.config.js", "prettier.config.cjs", "prettier.config.mjs", "prettier.config.ts",
+}
+
+--- Le projet (en remontant depuis dir) a-t-il une config Prettier ? Fichier dédié, ou clé
+--- « prettier » du package.json.
+function M.has_prettier_config(dir)
+  if vim.fs.find(PRETTIER_CONFIGS, { path = dir, upward = true })[1] then
+    return true
+  end
+  local package_json = vim.fs.find("package.json", { path = dir, upward = true })[1]
+  if not package_json then
+    return false
+  end
+  local ok, lines = pcall(vim.fn.readfile, package_json)
+  local ok2, pkg = pcall(vim.json.decode, ok and table.concat(lines, "\n") or "")
+  return ok2 and type(pkg) == "table" and pkg.prettier ~= nil
+end
+
+--- argv Prettier pour ce fichier (formatage par stdin), ou nil (conteneur arrêté).
+local function prettier_argv(ctx, extra)
+  local root = vim.fs.root(ctx.dirname, { "package.json" }) or ctx.dirname
+  local argv = project.tool(root, "prettier", function(path)
+    local args = { "--stdin-filepath", path(ctx.filename) }
+    if vim.bo[ctx.buf].filetype:match("^yaml") then
+      -- YAML : toujours 2 espaces, même si le .prettierrc dit autre chose (pendant du
+      -- forçage .editorconfig du socle) ; le reste du .prettierrc s'applique.
+      vim.list_extend(args, { "--config-precedence", "cli-override", "--tab-width", "2", "--use-tabs", "false" })
+    else
+      vim.list_extend(args, { "--config-precedence", "prefer-file" })
+    end
+    return vim.list_extend(args, extra or {})
+  end, { runtime = "node", host_if_missing = true })
+  return argv, root
+end
+
+require("conform").formatters.prettier_project = {
+  condition = function(_, ctx)
+    return M.has_prettier_config(ctx.dirname) and prettier_argv(ctx) ~= nil
+  end,
+  command = function(_, ctx)
+    return (prettier_argv(ctx) or { "false" })[1]
+  end,
+  args = function(_, ctx)
+    return vim.list_slice(prettier_argv(ctx) or {}, 2)
+  end,
+  range_args = function(_, ctx)
+    return vim.list_slice(prettier_argv(ctx, { "--range-start", "$RANGE_START", "--range-end", "$RANGE_END" }) or {}, 2)
+  end,
+  cwd = function(_, ctx)
+    return select(2, prettier_argv(ctx))
+  end,
+  stdin = true,
+}
+for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "css", "scss", "less", "html" }) do
+  -- Jamais de formatage par le LSP (vtsls/vue_ls imposeraient leur style).
+  require("conform").formatters_by_ft[ft] = { "prettier_project", lsp_format = "never" }
+end
 
 -- ─── ESLint : corrections à l'enregistrement ───────────────────────────────
 
@@ -212,6 +278,20 @@ vim.api.nvim_create_autocmd("FileType", {
     end
   end,
 })
+
+project.report("web : formateur", function(bufnr)
+  local ft = vim.bo[bufnr].filetype
+  if not vim.tbl_contains(TS_FILETYPES, ft) and not vim.tbl_contains({ "css", "scss", "html", "json", "yaml", "markdown" }, ft) then
+    return nil
+  end
+  local file = vim.api.nvim_buf_get_name(bufnr)
+  local ctx = { buf = bufnr, filename = file, dirname = vim.fs.dirname(file) }
+  if not M.has_prettier_config(ctx.dirname) then
+    return "aucun Prettier (pas de config Prettier dans le projet)"
+  end
+  local argv = prettier_argv(ctx)
+  return argv and table.concat(argv, " ") or "conteneur arrêté"
+end)
 
 project.report("web : serveur", function(bufnr)
   if not vim.tbl_contains(TS_FILETYPES, vim.bo[bufnr].filetype) and vim.bo[bufnr].filetype ~= "vue" then
