@@ -27,4 +27,5 @@ require("manu.project") -- racine, conteneur, :Projet (utilisé par les langages
 require("manu.lang.lua")
 require("manu.lang.markdown")
 require("manu.lang.php")
+require("manu.lang.symfony")
 require("manu.dashboard")

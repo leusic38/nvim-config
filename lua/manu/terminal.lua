@@ -80,6 +80,36 @@ function M.float_cmd(cmd, opts)
   return term
 end
 
+--- Lance une commande (argv) dans un terminal flottant qui reste ouvert après la fin, pour
+--- lire la sortie (console Symfony, composer, yarn…). `q` ou <Esc> le ferme ensuite.
+---@param argv string[]
+---@param opts? { cwd?: string, title?: string }
+function M.run(argv, opts)
+  opts = opts or {}
+  local term = Terminal:new({
+    cmd = table.concat(vim.tbl_map(vim.fn.shellescape, argv), " "),
+    dir = opts.cwd or M.root(),
+    direction = "float",
+    hidden = true,
+    close_on_exit = false,
+    display_name = opts.title,
+    float_opts = {
+      border = "rounded",
+      width = math.floor(vim.o.columns * 0.9),
+      height = math.floor(vim.o.lines * 0.9),
+      title = opts.title,
+    },
+    on_open = function(t)
+      vim.cmd("startinsert!")
+      vim.keymap.set("n", "q", function()
+        t:shutdown()
+      end, { buffer = t.bufnr, desc = "Fermer" })
+    end,
+  })
+  term:open()
+  return term
+end
+
 -- Terminaux shell par dossier : <leader>ft (racine du projet), <leader>fT (dossier courant).
 local by_dir = {}
 local function toggle_in(dir)

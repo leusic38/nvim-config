@@ -447,6 +447,36 @@ montre la commande exacte.
 | `<leader>plc` | n | Formater avec php-cs-fixer | lua/manu/lang/php.lua |
 | `<leader>pll` | n | Lancer PHPStan | lua/manu/lang/php.lua |
 
+## Symfony (buffer)
+
+Sur les fichiers `php`, `xml`, `yaml` et `twig` d'une appli Symfony (`bin/console` ou
+`config/bundles.php`). Console et Composer tournent dans le conteneur du projet, sortie
+dans un terminal flottant (`q` le ferme).
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `gd` | n | Config/template : aller à la classe (PSR-4), au template, à la définition | lua/manu/lang/symfony.lua |
+| `<leader>Si` | n | Statut de l'index Symfony | lua/manu/lang/symfony.lua |
+| `<leader>SR` | n | Rafraîchir l'index Symfony | lua/manu/lang/symfony.lua |
+| `<leader>SE` | n | Changer d'environnement Symfony | lua/manu/lang/symfony.lua |
+| `<leader>Sc` | n | Commande console (demande la suite) | lua/manu/lang/symfony.lua |
+| `<leader>Sm` | n | Commande `make:` | lua/manu/lang/symfony.lua |
+| `<leader>Sd` | n | Commande `doctrine:` | lua/manu/lang/symfony.lua |
+| `<leader>Sr` | n | Routes (`debug:router`) | lua/manu/lang/symfony.lua |
+| `<leader>Ss` | n | Services (`debug:container`) | lua/manu/lang/symfony.lua |
+| `<leader>Se` | n | Configuration (`debug:config`) | lua/manu/lang/symfony.lua |
+
+## Composer (buffer)
+
+Sur un fichier PHP d'un projet avec `composer.json`, dans le conteneur s'il y en a un.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>Cu` | n | `composer update` | lua/manu/lang/symfony.lua |
+| `<leader>Ci` | n | `composer install` | lua/manu/lang/symfony.lua |
+| `<leader>Cd` | n | `composer dump-autoload` | lua/manu/lang/symfony.lua |
+| `<leader>Cr` | n | `composer require …` (demande le paquet) | lua/manu/lang/symfony.lua |
+
 ## Fenêtres utilitaires (buffer)
 
 | Touche | Mode | Action | Fichier |
