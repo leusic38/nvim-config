@@ -20,5 +20,26 @@ echo "YAML    : ${yaml_file:-(aucun)}"
 echo "Test    : ${test_file:-(aucun)}"
 export MANU_REAL_YAML="$yaml_file" MANU_REAL_TEST="$test_file"
 
-NVIM_APPNAME=neovimanu timeout 900 nvim --headless -i NONE "$php_file" \
+NVIM_APPNAME=neovimanu timeout 900 nvim --headless -i NONE -n "$php_file" \
   -c "lua vim.api.nvim_create_autocmd('VimEnter', { once = true, callback = vim.schedule_wrap(function() dofile('$here/real_projects.lua') end) })" 2>&1
+
+# neotest, dans un Neovim à part ouvert sur le fichier de test.
+if [ -n "$test_file" ]; then
+  NVIM_APPNAME=neovimanu timeout 180 nvim --headless -i NONE -n "$test_file" \
+    -c "lua vim.api.nvim_create_autocmd('VimEnter', { once = true, callback = vim.schedule_wrap(function()
+      local nt = require('neotest')
+      local buf = vim.api.nvim_get_current_buf()
+      nt.summary.open()
+      local tree
+      vim.wait(120000, function()
+        for _, id in ipairs(nt.state.adapter_ids()) do
+          tree = nt.state.positions(id, { buffer = buf })
+          if tree then return true end
+        end
+      end, 500)
+      local n = 0
+      if tree then for _, p in tree:iter() do if p.type == 'test' then n = n + 1 end end end
+      io.stdout:write(('neotest : %d test(s) trouvé(s) dans %s (adaptateurs : %s)\\n'):format(n, '$test_file', table.concat(nt.state.adapter_ids(), ', ')))
+      vim.cmd('qa!')
+    end) })" 2>&1 | grep '^neotest'
+fi

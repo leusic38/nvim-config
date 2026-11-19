@@ -78,31 +78,6 @@ else
   say("PHPStan : non lancé (pas de config, ou conteneur arrêté)")
 end
 
--- Tests vus par neotest, sur un fichier de test du projet.
-local nt = require("neotest")
-if vim.env.MANU_REAL_TEST ~= "" then
-  vim.cmd("edit " .. vim.fn.fnameescape(vim.env.MANU_REAL_TEST))
-  local file = vim.api.nvim_buf_get_name(0)
-  -- Le client neotest démarre au premier usage (ici : ouvrir le résumé).
-  nt.summary.open()
-  vim.cmd("wincmd p")
-  local found = wait(120000, function()
-    for _, id in ipairs(nt.state.adapter_ids()) do
-      local tree = nt.state.positions(id, { buffer = 0 })
-      if tree then
-        return tree
-      end
-    end
-  end)
-  local n = 0
-  if found then
-    for _, pos in found:iter() do
-      n = n + (pos.type == "test" and 1 or 0)
-    end
-  end
-  say("neotest : %d test(s) trouvé(s) dans %s (adaptateurs : %s)", n, vim.fn.fnamemodify(file, ":."), table.concat(nt.state.adapter_ids(), ", "))
-end
-
 -- symfony-lsp sur un services.yaml
 local yaml = vim.env.MANU_REAL_YAML
 if yaml and yaml ~= "" then
