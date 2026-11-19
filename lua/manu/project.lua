@@ -138,7 +138,8 @@ function M.cmd(root, argv, runtime)
     end
     return nil, msg
   end
-  return vim.list_extend({ "docker", "compose", "exec", "-T", docker.service }, argv)
+  -- -w : l'outil part de la racine du projet dans le conteneur (il y trouve sa config).
+  return vim.list_extend({ "docker", "compose", "exec", "-T", "-w", docker.container_root, docker.service }, argv)
 end
 
 -- ─── Outils du projet ──────────────────────────────────────────────────────

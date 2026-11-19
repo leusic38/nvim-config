@@ -57,8 +57,8 @@ end
 project.container_running = function()
   return true
 end
-t.eq(project.cmd(docker, { "bin/phpunit" }), { "docker", "compose", "exec", "-T", "php", "bin/phpunit" }, "conteneur en marche")
-t.eq(project.cmd(docker, { "x" }, "node"), { "docker", "compose", "exec", "-T", "node", "x" }, "conteneur node")
+t.eq(project.cmd(docker, { "bin/phpunit" }), { "docker", "compose", "exec", "-T", "-w", "/var/app/x", "php", "bin/phpunit" }, "conteneur en marche")
+t.eq(project.cmd(docker, { "x" }, "node"), { "docker", "compose", "exec", "-T", "-w", "/app", "node", "x" }, "conteneur node")
 project.container_running = function()
   return false
 end

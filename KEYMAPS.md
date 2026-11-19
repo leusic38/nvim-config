@@ -434,6 +434,19 @@ Affichée par `nn` seul ou `nn <dossier>` (Neovim se place alors dans le dossier
 | `1` … `5` | n | Ouvrir un fichier récent du dossier | lua/manu/dashboard.lua |
 | `<CR>` | n | Lancer l'élément sous le curseur | lua/manu/dashboard.lua |
 
+## PHP (buffer)
+
+Formatage à l'enregistrement : php-cs-fixer si le projet a `.php-cs-fixer(.dist).php`.
+Analyse à l'enregistrement : PHPStan si le projet a `phpstan(.dist).neon`. Les deux tournent
+dans le conteneur du projet (`.nvim/docker.lua`), avec les binaires du projet ; `:Projet`
+montre la commande exacte.
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `<leader>plf` | n | Formater avec le LSP (Intelephense) | lua/manu/lang/php.lua |
+| `<leader>plc` | n | Formater avec php-cs-fixer | lua/manu/lang/php.lua |
+| `<leader>pll` | n | Lancer PHPStan | lua/manu/lang/php.lua |
+
 ## Fenêtres utilitaires (buffer)
 
 | Touche | Mode | Action | Fichier |
