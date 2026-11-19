@@ -100,6 +100,72 @@ local function rename_file()
   end)
 end
 
+--- Saut LSP sans doublons : plusieurs serveurs sur un même buffer (Intelephense et
+--- symfony-lsp en PHP) renvoient souvent le même emplacement ; Neovim ouvrirait alors une
+--- quickfix au lieu de sauter. Un seul emplacement distinct (du projet courant de
+--- préférence) → saut direct, sinon liste fzf.
+---@param fn fun(opts: vim.lsp.ListOpts)
+local function goto_unique(fn)
+  return function()
+    fn({
+      on_list = function(list)
+        local seen, items = {}, {}
+        for _, it in ipairs(list.items or {}) do
+          local key = ("%s:%d"):format(it.filename, it.lnum)
+          if not seen[key] then
+            seen[key] = true
+            table.insert(items, it)
+          end
+        end
+        if #items == 0 then
+          return vim.notify("Aucun résultat", vim.log.levels.INFO)
+        end
+        -- Plusieurs copies d'une même classe (lama/vendor et lama/mcp/vendor) : garder
+        -- celles du projet du fichier courant (composer.json / package.json le plus proche).
+        if #items > 1 then
+          local markers = { "composer.json", "package.json" }
+          -- Projet d'un fichier : on coupe à vendor/ ou node_modules/ (chaque paquet y a son
+          -- propre composer.json / package.json) avant de chercher le marqueur.
+          local function project_of(path)
+            path = path:gsub("/vendor/.*$", "/x"):gsub("/node_modules/.*$", "/x")
+            return vim.fs.root(path, markers)
+          end
+          local here = project_of(vim.api.nvim_buf_get_name(0))
+          local same = vim.tbl_filter(function(it)
+            return here ~= nil and project_of(it.filename) == here
+          end, items)
+          if #same > 0 then
+            items = same
+          end
+          -- Encore plusieurs : préférer le code du projet et son vendor/ racine à un vendor/
+          -- imbriqué plus bas (sous-dossier sans composer.json propre).
+          if #items > 1 and here then
+            local top = vim.tbl_filter(function(it)
+              local before = it.filename:match("^(.-)/vendor/") or it.filename:match("^(.-)/node_modules/")
+              return before == nil or before == here
+            end, items)
+            if #top > 0 then
+              items = top
+            end
+          end
+        end
+        if #items == 1 then
+          local it = items[1]
+          vim.cmd("normal! m'") -- retour possible avec <C-o>
+          if vim.fs.normalize(it.filename) ~= vim.fs.normalize(vim.api.nvim_buf_get_name(0)) then
+            vim.cmd.edit(vim.fn.fnameescape(it.filename))
+          end
+          vim.api.nvim_win_set_cursor(0, { it.lnum, math.max((it.col or 1) - 1, 0) })
+          vim.cmd("normal! zv")
+          return
+        end
+        vim.fn.setqflist({}, " ", { title = list.title, items = items })
+        require("fzf-lua").quickfix()
+      end,
+    })
+  end
+end
+
 local function code_action_only(kind)
   return function()
     vim.lsp.buf.code_action({ context = { only = { kind }, diagnostics = {} }, apply = kind == "source.organizeImports" })
@@ -125,12 +191,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
       return m.lhs == "gd"
     end)
     if not has_gd then
-      bmap("n", "gd", vim.lsp.buf.definition, "Aller à la définition", "textDocument/definition")
+      bmap("n", "gd", goto_unique(vim.lsp.buf.definition), "Aller à la définition", "textDocument/definition")
     end
     bmap("n", "gr", vim.lsp.buf.references, "Références")
-    bmap("n", "gI", vim.lsp.buf.implementation, "Aller à l'implémentation")
-    bmap("n", "gy", vim.lsp.buf.type_definition, "Aller au type")
-    bmap("n", "gD", vim.lsp.buf.declaration, "Aller à la déclaration")
+    bmap("n", "gI", goto_unique(vim.lsp.buf.implementation), "Aller à l'implémentation")
+    bmap("n", "gy", goto_unique(vim.lsp.buf.type_definition), "Aller au type")
+    bmap("n", "gD", goto_unique(vim.lsp.buf.declaration), "Aller à la déclaration")
     bmap("n", "K", function()
       vim.lsp.buf.hover()
     end, "Documentation (survol)")

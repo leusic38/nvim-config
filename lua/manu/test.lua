@@ -37,6 +37,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
     started = true
     require("neotest").setup({
       adapters = adapters,
+      -- Pas d'analyse de tout le dépôt au premier usage (lama : des milliers de fichiers,
+      -- plusieurs minutes de gel) : seuls les fichiers ouverts sont analysés.
+      discovery = { enabled = false },
       output = { open_on_run = false },
       quickfix = { open = false },
       floating = { border = "rounded" },
