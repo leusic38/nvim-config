@@ -73,6 +73,18 @@
       "src": "https://github.com/nvim-mini/mini.pairs",
       "version": "0.0.0 - 1.0.0"
     },
+    "neotest": {
+      "rev": "27bf921498043f7ecd821d6db68d05de244bbd02",
+      "src": "https://github.com/nvim-neotest/neotest"
+    },
+    "neotest-pest": {
+      "rev": "3388a5f00001303020ce885e18007ccd1835212c",
+      "src": "https://github.com/V13Axel/neotest-pest"
+    },
+    "neotest-phpunit": {
+      "rev": "40e53c4294726a16f34f1a383a94c570553c6d46",
+      "src": "https://github.com/olimorris/neotest-phpunit"
+    },
     "nvim-lint": {
       "rev": "52107ce2076a27a285af781248e2c59bad817cd0",
       "src": "https://github.com/mfussenegger/nvim-lint"
@@ -80,6 +92,10 @@
     "nvim-lspconfig": {
       "rev": "443d92c6bea761ab54cdde46fb197a2b4d614bdd",
       "src": "https://github.com/neovim/nvim-lspconfig"
+    },
+    "nvim-nio": {
+      "rev": "edcc181a875301dd21840189aa2f2f9ad69fc172",
+      "src": "https://github.com/nvim-neotest/nvim-nio"
     },
     "nvim-treesitter": {
       "rev": "19bdfc04f40ed2ccb3340591d125f759b0406875",
@@ -107,6 +123,10 @@
       "rev": "c45ff862b53ce07a853a753fb0b33e148dbb99d2",
       "src": "https://github.com/folke/persistence.nvim",
       "version": "3.0.0 - 4.0.0"
+    },
+    "phpactor": {
+      "rev": "f3569171db717d32fd4bc3b3e8ddd87fda2eea08",
+      "src": "https://github.com/phpactor/phpactor"
     },
     "plenary.nvim": {
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",

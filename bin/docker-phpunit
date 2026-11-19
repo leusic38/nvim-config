@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# PHPUnit / Pest dans le conteneur du projet, pour neotest.
+#
+# Usage : docker-phpunit HOST_ROOT SERVICE CONTAINER_ROOT OUTIL [arguments…]
+#
+# neotest-phpunit / neotest-pest appellent « OUTIL … --log-junit=/tmp/xxx <fichier hôte> » et
+# lisent ensuite le rapport JUnit. Le conteneur ne voit ni /tmp de l'hôte, ni les chemins
+# hôte. Ce script :
+#   * traduit les arguments qui sont des chemins sous HOST_ROOT en chemins conteneur ;
+#   * écrit le rapport dans <projet>/var/ (monté dans le conteneur), puis le recopie à
+#     l'emplacement demandé par neotest, chemins du rapport retraduits vers l'hôte ;
+#   * rend le code de sortie de l'outil.
+# Appelé par lua/manu/lang/php.lua (même convention que bin/twiggy-php).
+
+set -u
+
+host_root=$1
+service=$2
+container_root=$3
+shift 3
+
+report_host=""
+tmp_name="neotest-junit-$$.xml"
+args=()
+for arg in "$@"; do
+  case "$arg" in
+    --log-junit=*)
+      report_host=${arg#--log-junit=}
+      args+=("--log-junit=$container_root/var/$tmp_name")
+      ;;
+    "$host_root"/*)
+      args+=("$container_root${arg#"$host_root"}")
+      ;;
+    *)
+      args+=("$arg")
+      ;;
+  esac
+done
+
+mkdir -p "$host_root/var"
+cd "$host_root" || exit 1
+docker compose exec -T -w "$container_root" "$service" "${args[@]}"
+status=$?
+
+if [ -n "$report_host" ] && [ -f "$host_root/var/$tmp_name" ]; then
+  # Les chemins du rapport (file="…") redeviennent des chemins hôte pour neotest.
+  sed "s#$container_root/#$host_root/#g" "$host_root/var/$tmp_name" > "$report_host"
+  rm -f "$host_root/var/$tmp_name"
+fi
+exit $status

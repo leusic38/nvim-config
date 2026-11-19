@@ -203,3 +203,102 @@ vim.api.nvim_create_autocmd("FileType", {
     end, "PHP : lancer PHPStan")
   end,
 })
+
+-- ─── Tests : PHPUnit et Pest (neotest), dans le conteneur si dockerisé ──────
+
+local config_dir = vim.fn.stdpath("config")
+
+--- Commande PHPUnit / Pest pour neotest. Dockerisé : bin/docker-phpunit traduit les chemins
+--- et rapatrie le rapport JUnit ; conteneur arrêté : échec explicite, pas de repli hôte.
+---@param tool "phpunit"|"pest"
+local function test_cmd(tool)
+  return function()
+    local root = project.root(vim.api.nvim_get_current_buf()) or project.root(nil) or assert(vim.uv.cwd())
+    local rel = project.bin(root, tool) or (project.bin_dir(root) .. "/" .. tool)
+    local docker = project.docker(root)
+    if not docker then
+      return { root .. "/" .. rel }
+    end
+    if not project.container_running(root, docker.service) then
+      local msg = ("Conteneur %s arrêté : docker compose up -d %s"):format(docker.service, docker.service)
+      return { "sh", "-c", "echo " .. vim.fn.shellescape(msg) .. " >&2; exit 1" }
+    end
+    return { config_dir .. "/bin/docker-phpunit", root, docker.service, docker.container_root, rel }
+  end
+end
+local test = require("manu.test")
+test.add_adapter(require("neotest-phpunit")({
+  phpunit_cmd = test_cmd("phpunit"),
+  root_files = { "phpunit.xml", "phpunit.xml.dist", "composer.json" },
+  filter_dirs = { ".git", "node_modules", "vendor" },
+}))
+test.add_adapter(require("neotest-pest")({ pest_cmd = test_cmd("pest") }))
+
+project.report("php : tests", function(bufnr)
+  if vim.bo[bufnr].filetype ~= "php" then
+    return nil
+  end
+  return table.concat(test_cmd("phpunit")(), " ")
+end)
+
+-- ─── phpactor ──────────────────────────────────────────────────────────────
+-- Menu de refactoring PHP (nouvelle classe, import, transformation, copie de fichier) que
+-- ni Intelephense ni refactoring.nvim ne couvrent. Le plugin embarque son binaire, à
+-- compiler avec composer à l'installation et à chaque mise à jour (hook PackChanged).
+require("manu.pack_hooks").register("phpactor", function(ev)
+  if ev.data.kind == "install" or ev.data.kind == "update" then
+    vim.notify("phpactor : composer install…")
+    vim.system({
+      "composer", "install", "--no-dev", "-o",
+      "--ignore-platform-req=ext-iconv", "--ignore-platform-req=ext-mbstring",
+    }, { cwd = ev.data.path }, function(res)
+      vim.schedule(function()
+        vim.notify("phpactor : composer install " .. (res.code == 0 and "terminé" or "en échec"),
+          res.code == 0 and vim.log.levels.INFO or vim.log.levels.ERROR)
+      end)
+    end)
+  end
+end)
+vim.pack.add({ "https://github.com/phpactor/phpactor" }, { confirm = false })
+
+-- ─── Raccourcis PHP : tests, phpactor, snippets (buffer, perso) ─────────────
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("manu_php_keymaps_more", { clear = true }),
+  pattern = "php",
+  callback = function(ev)
+    local function bmap(lhs, rhs, desc)
+      vim.keymap.set("n", lhs, rhs, { buffer = ev.buf, desc = desc })
+    end
+    local function neotest()
+      return require("neotest")
+    end
+    bmap("<leader>pta", function()
+      neotest().run.run(vim.fn.expand("%"))
+    end, "PHP : tests du fichier")
+    bmap("<leader>ptn", function()
+      neotest().run.run()
+    end, "PHP : test au curseur")
+    bmap("<leader>pts", function()
+      neotest().summary.toggle()
+    end, "PHP : résumé des tests")
+    bmap("<leader>pto", function()
+      neotest().output.open({ enter = true })
+    end, "PHP : sortie du test")
+
+    bmap("<leader>pm", "<cmd>PhpactorContextMenu<cr>", "phpactor : menu contextuel")
+    bmap("<leader>pn", "<cmd>PhpactorClassNew<cr>", "phpactor : nouvelle classe")
+    bmap("<leader>pE", "<cmd>PhpactorClassExpand<cr>", "phpactor : nom complet de la classe")
+    bmap("<leader>pp", "<cmd>PhpactorCopyFile<cr>", "phpactor : copier le fichier")
+    bmap("<leader>pT", "<cmd>PhpactorTransform<cr>", "phpactor : transformer")
+    bmap("<leader>pi", "<cmd>PhpactorImportClass<cr>", "phpactor : importer la classe")
+
+    -- Snippets perso (repris tels quels de l'ancien php-keymaps.lua).
+    bmap("<leader>pv", "i<?php<cr><cr>declare(strict_types=1);<cr><cr>", "PHP : en-tête strict_types")
+    bmap("<leader>pc", "iclass <cr>{<cr><cr>}<esc>2k$F a", "PHP : modèle de classe")
+    bmap("<leader>pf", "ipublic function ()<cr>{<cr><cr>}<esc>2k$F)i", "PHP : modèle de fonction")
+    bmap("<leader>pe", "i#[Entity]<cr>class <cr>{<cr><cr>}<esc>2k$F a", "PHP : modèle d'entité Doctrine")
+    bmap("<leader>pr", "iclass Repository extends ServiceEntityRepository<cr>{<cr><cr>}<esc>2k$FRa", "PHP : modèle de repository")
+    bmap("<leader>ps", "i#[Service]<cr>class Service<cr>{<cr><cr>}<esc>2k$FSa", "PHP : modèle de service")
+  end,
+})

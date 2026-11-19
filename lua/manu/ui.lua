@@ -110,6 +110,7 @@ wk.setup({
       { "<leader>C", group = "Composer" },
       { "<leader>p", group = "PHP" },
       { "<leader>pl", group = "PHP : format / analyse" },
+      { "<leader>pt", group = "PHP : tests" },
       { "<leader>gh", group = "hunks" },
       { "<leader>t", group = "terminal" },
       { "<leader>b", group = "buffers" },

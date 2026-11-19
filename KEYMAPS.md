@@ -436,6 +436,7 @@ Affichée par `nn` seul ou `nn <dossier>` (Neovim se place alors dans le dossier
 
 ## PHP (buffer)
 
+Tests : PHPUnit/Pest du projet, dans le conteneur (`bin/docker-phpunit`).
 Formatage à l'enregistrement : php-cs-fixer si le projet a `.php-cs-fixer(.dist).php`.
 Analyse à l'enregistrement : PHPStan si le projet a `phpstan(.dist).neon`. Les deux tournent
 dans le conteneur du projet (`.nvim/docker.lua`), avec les binaires du projet ; `:Projet`
@@ -446,6 +447,22 @@ montre la commande exacte.
 | `<leader>plf` | n | Formater avec le LSP (Intelephense) | lua/manu/lang/php.lua |
 | `<leader>plc` | n | Formater avec php-cs-fixer | lua/manu/lang/php.lua |
 | `<leader>pll` | n | Lancer PHPStan | lua/manu/lang/php.lua |
+| `<leader>pta` | n | Tests du fichier (neotest) | lua/manu/lang/php.lua |
+| `<leader>ptn` | n | Test au curseur | lua/manu/lang/php.lua |
+| `<leader>pts` | n | Résumé des tests | lua/manu/lang/php.lua |
+| `<leader>pto` | n | Sortie du test | lua/manu/lang/php.lua |
+| `<leader>pm` | n | phpactor : menu contextuel | lua/manu/lang/php.lua |
+| `<leader>pn` | n | phpactor : nouvelle classe | lua/manu/lang/php.lua |
+| `<leader>pE` | n | phpactor : nom complet de la classe | lua/manu/lang/php.lua |
+| `<leader>pp` | n | phpactor : copier le fichier | lua/manu/lang/php.lua |
+| `<leader>pT` | n | phpactor : transformer | lua/manu/lang/php.lua |
+| `<leader>pi` | n | phpactor : importer la classe | lua/manu/lang/php.lua |
+| `<leader>pv` | n | Snippet : en-tête `declare(strict_types=1)` | lua/manu/lang/php.lua |
+| `<leader>pc` | n | Snippet : classe | lua/manu/lang/php.lua |
+| `<leader>pf` | n | Snippet : fonction | lua/manu/lang/php.lua |
+| `<leader>pe` | n | Snippet : entité Doctrine | lua/manu/lang/php.lua |
+| `<leader>pr` | n | Snippet : repository | lua/manu/lang/php.lua |
+| `<leader>ps` | n | Snippet : service | lua/manu/lang/php.lua |
 
 ## Symfony (buffer)
 
