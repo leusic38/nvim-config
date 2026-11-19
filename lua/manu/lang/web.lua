@@ -1,8 +1,12 @@
 -- Web : JavaScript, TypeScript, JSX/TSX, Vue, CSS/SCSS, HTML (modèle de lang/lua.lua).
 -- Un seul fichier : ces langages partagent serveurs, formateur et outils.
 --
--- vtsls : serveur TypeScript/JavaScript (commandes « source definition », références du
--- fichier, imports…). Les serveurs restent sur l'hôte et lisent node_modules du projet.
+-- vtsls  : serveur TypeScript/JavaScript (commandes « source definition », références du
+--          fichier, imports…), aussi pour le <script> des .vue (plugin @vue/typescript-plugin).
+-- vue_ls : serveur Vue (templates, styles), en mode hybride : il délègue le TypeScript à vtsls.
+-- ESLint : serveur eslint-lsp ; corrections appliquées à l'enregistrement, sauf si le
+--          formatage est coupé (<leader>uf / <leader>uF).
+-- Les serveurs restent sur l'hôte et lisent node_modules du projet.
 -- Raccourcis propres à vtsls, posés à son attache (après ceux de lsp.lua : son `gD`, la
 -- définition « source », remplace « déclaration »).
 
@@ -10,7 +14,7 @@ local project = require("manu.project")
 
 local M = {}
 
-require("manu.mason").ensure({ "vtsls" })
+require("manu.mason").ensure({ "vtsls", "vue-language-server", "eslint-lsp" })
 
 -- Indices inline (perso) : noms de paramètres pour les littéraux en TS, partout en JS.
 local function inlay_hints(parameter_names)
@@ -27,7 +31,11 @@ end
 local TS_FILETYPES = {
   "javascript", "javascriptreact", "javascript.jsx",
   "typescript", "typescriptreact", "typescript.tsx",
+  "vue",
 }
+
+-- Plugin TypeScript de Vue, livré avec le paquet Mason vue-language-server.
+local VUE_TS_PLUGIN = vim.fn.stdpath("data") .. "/mason/packages/vue-language-server/node_modules/@vue/language-server"
 
 -- Réglages de l'extra LazyVim lang.typescript + indices perso de l'ancien javascript.lua.
 vim.lsp.config("vtsls", {
@@ -35,6 +43,17 @@ vim.lsp.config("vtsls", {
   settings = {
     complete_function_calls = true,
     vtsls = {
+      tsserver = {
+        globalPlugins = {
+          {
+            name = "@vue/typescript-plugin",
+            location = VUE_TS_PLUGIN,
+            languages = { "vue" },
+            configNamespace = "typescript",
+            enableForWorkspaceTypeScriptVersions = true,
+          },
+        },
+      },
       enableMoveToFileCodeAction = true,
       autoUseWorkspaceTsdk = true,
       experimental = {
@@ -54,7 +73,45 @@ vim.lsp.config("vtsls", {
     },
   },
 })
-vim.lsp.enable({ "vtsls" })
+vim.lsp.config("eslint", {
+  settings = { workingDirectory = { mode = "auto" }, format = true },
+})
+vim.lsp.enable({ "vtsls", "vue_ls", "eslint" })
+
+-- ─── ESLint : corrections à l'enregistrement ───────────────────────────────
+
+--- Applique toutes les corrections ESLint du buffer (synchrone, 1 s max).
+function M.eslint_fix(bufnr)
+  bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
+  local client = vim.lsp.get_clients({ bufnr = bufnr, name = "eslint" })[1]
+  if not client then
+    return false
+  end
+  client:request_sync("workspace/executeCommand", {
+    command = "eslint.applyAllFixes",
+    arguments = { { uri = vim.uri_from_bufnr(bufnr), version = vim.lsp.util.buf_versions[bufnr] } },
+  }, 1000, bufnr)
+  return true
+end
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("manu_eslint_attach", { clear = true }),
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    if not client or client.name ~= "eslint" then
+      return
+    end
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      group = vim.api.nvim_create_augroup("manu_eslint_fix_" .. ev.buf, { clear = true }),
+      buffer = ev.buf,
+      callback = function(w)
+        if require("manu.format").enabled(w.buf) then
+          M.eslint_fix(w.buf)
+        end
+      end,
+    })
+  end,
+})
 
 require("manu.treesitter").install({ "javascript", "typescript", "tsx", "jsdoc", "css", "scss", "html", "vue" })
 
@@ -130,6 +187,29 @@ vim.api.nvim_create_autocmd("LspAttach", {
       -- Même action que <leader>cR (lsp.lua) : renommer le fichier en prévenant le serveur.
       vim.api.nvim_feedkeys(vim.keycode("<leader>cR"), "m", false)
     end, "JS : renommer le fichier")
+  end,
+})
+
+-- ─── Raccourcis JS / TS / Vue (buffer, perso) ──────────────────────────────
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("manu_web_keymaps", { clear = true }),
+  pattern = TS_FILETYPES,
+  callback = function(ev)
+    local function bmap(lhs, rhs, desc)
+      vim.keymap.set("n", lhs, rhs, { buffer = ev.buf, desc = desc })
+    end
+    bmap("<leader>jle", function()
+      if not M.eslint_fix(ev.buf) then
+        vim.notify("ESLint n'est pas attaché à ce buffer (pas de config ESLint ?)", vim.log.levels.WARN)
+      end
+    end, "JS : corriger tous les problèmes ESLint")
+    if vim.bo[ev.buf].filetype == "vue" then
+      bmap("<leader>vc", vim.lsp.buf.code_action, "Vue : actions de code")
+      bmap("<leader>vr", vim.lsp.buf.rename, "Vue : renommer")
+      bmap("<leader>vs", "i<template><cr>  <div><cr>    <cr>  </div><cr></template><cr><cr><script><cr>export default {<cr>  name: 'ComponentName',<cr>  data() {<cr>    return {<cr>      <cr>    }<cr>  }<cr>}<cr></script><cr><cr><style scoped><cr><cr></style><esc>", "Vue : modèle SFC (Options API)")
+      bmap("<leader>v3", "i<template><cr>  <div><cr>    <cr>  </div><cr></template><cr><cr><script setup lang=\"ts\"><cr>import { ref } from 'vue'<cr><cr>const count = ref(0)<cr></script><cr><cr><style scoped><cr><cr></style><esc>", "Vue : modèle SFC (Composition API)")
+    end
   end,
 })
 

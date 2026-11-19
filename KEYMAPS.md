@@ -531,6 +531,31 @@ Sur un fichier PHP d'un projet avec `composer.json`, dans le conteneur s'il y en
 | `<leader>Cd` | n | `composer dump-autoload` | lua/manu/lang/symfony.lua |
 | `<leader>Cr` | n | `composer require …` (demande le paquet) | lua/manu/lang/symfony.lua |
 
+## JavaScript / TypeScript / Vue (buffer)
+
+Serveurs : vtsls (JS/TS, et le `<script>` des `.vue`), vue_ls (templates Vue), ESLint
+(corrections appliquées à l'enregistrement, sauf formatage coupé par `<leader>uf`/`<leader>uF`).
+Touches posées à l'attache de vtsls (elles remplacent `gD` « déclaration » de lsp.lua) :
+
+| Touche | Mode | Action | Fichier |
+|--------|------|--------|---------|
+| `gD` | n | Aller à la définition source (TS, pas le `.d.ts`) | lua/manu/lang/web.lua |
+| `gR` | n | Références du fichier | lua/manu/lang/web.lua |
+| `<leader>cM` | n | Ajouter les imports manquants | lua/manu/lang/web.lua |
+| `<leader>cD` | n | Corriger tous les diagnostics (TS) | lua/manu/lang/web.lua |
+| `<leader>cV` | n | Choisir la version TypeScript du projet | lua/manu/lang/web.lua |
+| `<leader>jlo` | n | Organiser les imports | lua/manu/lang/web.lua |
+| `<leader>jls` | n | Trier les imports | lua/manu/lang/web.lua |
+| `<leader>jlu` | n | Retirer les imports inutilisés | lua/manu/lang/web.lua |
+| `<leader>jlg` | n | Aller à la définition source | lua/manu/lang/web.lua |
+| `<leader>jla` | n | Ajouter les imports manquants | lua/manu/lang/web.lua |
+| `<leader>jlr` | n | Renommer le fichier (comme `<leader>cR`) | lua/manu/lang/web.lua |
+| `<leader>jle` | n | Corriger tous les problèmes ESLint | lua/manu/lang/web.lua |
+| `<leader>vc` | n | Vue : actions de code | lua/manu/lang/web.lua |
+| `<leader>vr` | n | Vue : renommer | lua/manu/lang/web.lua |
+| `<leader>vs` | n | Vue : modèle SFC (Options API) | lua/manu/lang/web.lua |
+| `<leader>v3` | n | Vue : modèle SFC (Composition API) | lua/manu/lang/web.lua |
+
 ## Fenêtres utilitaires (buffer)
 
 | Touche | Mode | Action | Fichier |
