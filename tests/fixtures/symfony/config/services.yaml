@@ -1,0 +1,3 @@
+services:
+  App\Service\Greeter:
+    public: true

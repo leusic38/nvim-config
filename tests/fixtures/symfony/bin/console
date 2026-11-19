@@ -1,0 +1,3 @@
+#!/usr/bin/env php
+<?php
+// Fixture : marque une appli Symfony, ne fait rien.

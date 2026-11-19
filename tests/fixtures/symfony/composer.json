@@ -1,0 +1,6 @@
+{
+  "name": "manu/fixture-symfony",
+  "require": { "php": ">=8.2" },
+  "autoload": { "psr-4": { "App\\": "src/" } },
+  "autoload-dev": { "psr-4": { "App\\Tests\\": "tests/" } }
+}
