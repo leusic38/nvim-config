@@ -51,4 +51,4 @@ Un `.nvim/docker.lua` à la racine d'un projet fait tourner ses outils (php-cs-f
 PHPStan, PHPUnit, console, composer, outils JS) dans son conteneur. `:Projet` affiche ce qui
 est détecté pour le fichier courant. Détails : `MANUEL.md`, section 12.
 
-Démarrage mesuré (2026-11-12, headless, `--startuptime`) : **~95 ms**.
+Démarrage mesuré (headless, `--startuptime`) : **~95 ms** le 2026-11-12 (socle), **~110 ms** le 2026-11-19 (avec PHP/Symfony et JS/TS/Vue).

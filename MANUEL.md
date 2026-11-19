@@ -21,12 +21,13 @@
 8. [Git](#8-git)
 9. [PHP / Symfony](#9-php--symfony)
 10. [Twig, XML, YAML, JSON](#10-twig-xml-yaml-json)
-11. [Tests et débogage](#11-tests-et-débogage)
-12. [Config par projet : le dossier `.nvim/`](#12-config-par-projet--le-dossier-nvim)
-13. [Claude : IA et agents parallèles](#13-claude--ia-et-agents-parallèles)
-14. [Entretien de la config](#14-entretien-de-la-config)
-15. [Ajouter un langage](#15-ajouter-un-langage)
-16. [Dépannage](#16-dépannage)
+11. [JavaScript / TypeScript / Vue](#11-javascript--typescript--vue)
+12. [Tests et débogage](#12-tests-et-débogage)
+13. [Config par projet : le dossier `.nvim/`](#13-config-par-projet--le-dossier-nvim)
+14. [Claude : IA et agents parallèles](#14-claude--ia-et-agents-parallèles)
+15. [Entretien de la config](#15-entretien-de-la-config)
+16. [Ajouter un langage](#16-ajouter-un-langage)
+17. [Dépannage](#17-dépannage)
 
 ---
 
@@ -133,7 +134,7 @@ Oil remplace netrw et neo-tree : **un dossier s'édite comme un buffer texte**.
   liste, `<leader>bj` pour choisir par lettre, `<leader>bd` fermer (la fenêtre reste),
   `<leader>bo` fermer tous les autres, `<leader>bp` épingler.
 - **Onglets** (`<leader><Tab><Tab>` nouveau, `<leader><Tab>]` suivant…) : utilisés surtout pour Claude et les **worktrees** —
-  chaque onglet de worktree a son propre dossier courant (`:tcd`), voir §9.
+  chaque onglet de worktree a son propre dossier courant (`:tcd`), voir §14.
 - **Sessions** : `<leader>qs` restaure la session du dossier courant (buffers, fenêtres),
   `<leader>ql` la dernière, `<leader>qd` n'enregistre pas celle-ci.
 
@@ -196,7 +197,7 @@ Les diagnostics s'affichent **en fin de ligne**. `<leader>ud` les masque,
 
 blink.cmp propose LSP, chemins, snippets et mots du buffer. `<CR>` accepte,
 `<C-Space>` ouvre le menu, `<C-n>`/`<C-p>` naviguent, `<Tab>` saute au champ suivant d'un
-snippet. Pas d'IA dans la complétion : l'IA passe par Claude (§9).
+snippet. Pas d'IA dans la complétion : l'IA passe par Claude (§14).
 
 ### Refactoring (langages Treesitter)
 
@@ -242,8 +243,11 @@ la première sauvegarde.
 | PHP     | php-cs-fixer **si `.php-cs-fixer(.dist).php`** (dans le conteneur) | PHPStan **si `phpstan(.dist).neon`**, à l'enregistrement |
 | Twig    | Twig-CS-Fixer **si `.twig-cs-fixer(.dist).php`** | Twig-CS-Fixer |
 | XML     | `<leader>cf` (lemminx)                      | lemminx (schémas XSD) |
+| JS/TS/Vue, CSS, HTML | Prettier **si config Prettier** ; ESLint corrige à l'enregistrement | ESLint |
+| JSON, YAML | Prettier **si config Prettier** (YAML toujours à 2 espaces) | json-lsp / yaml-language-server (schémas) |
+| Markdown | Prettier si config, puis markdownlint `--fix` si le projet a sa config | markdownlint (config de neovimanu) |
 
-JS/TS/Vue (Prettier, ESLint) et SQL suivent, avec la même règle.
+SQL suivra, avec la même règle.
 
 - `<leader>uf` coupe/rétablit le formatage à l'enregistrement **partout** ;
   `<leader>uF` **pour le buffer courant** seulement (prioritaire sur le global).
@@ -353,11 +357,11 @@ Enregistrer, `-` dans le panneau de fichiers pour indexer, `<leader>gD` pour fer
   comprend services, paramètres et routes.
 - **phpactor** : refactoring PHP (nouvelle classe, import, transformation).
 - **php-cs-fixer** et **PHPStan** : formatage et analyse statique.
-- **PHPUnit / Pest** via neotest, **Xdebug** via nvim-dap (§11).
+- **PHPUnit / Pest** via neotest, **Xdebug** via nvim-dap (§12).
 
 ### Le conteneur d'abord
 
-Quand le projet a un `.nvim/docker.lua` (§12), **ses outils tournent dans le conteneur**,
+Quand le projet a un `.nvim/docker.lua` (§13), **ses outils tournent dans le conteneur**,
 avec les binaires du projet (`bin-dir` du `composer.json`, `bin/` pour lama) : la même
 version de PHP et des outils que la CI. Si le conteneur est arrêté, rien ne tourne sur
 l'hôte à sa place : un message indique la commande pour le démarrer
@@ -380,8 +384,8 @@ framework, conteneur (en marche ou non), et la commande exacte de chaque outil.
 | ------------ | ---------------------------------------------------------------- |
 | `<leader>pl…` | `<leader>plf` format LSP, `<leader>plc` php-cs-fixer, `<leader>pll` PHPStan |
 | `<leader>p…` | phpactor (`<leader>pm` menu, `<leader>pn` nouvelle classe, `<leader>pi` import) et snippets (`<leader>pv` en-tête, `<leader>pc` classe, `<leader>pe` entité, `<leader>pr` repository, `<leader>ps` service) |
-| `<leader>pt…` | Tests du fichier PHP (§11)                                        |
-| `<leader>pd…` | Débogage Xdebug (§11)                                             |
+| `<leader>pt…` | Tests du fichier PHP (§12)                                        |
+| `<leader>pd…` | Débogage Xdebug (§12)                                             |
 | `<leader>S…` | Console Symfony : `<leader>Sc` commande, `<leader>Sm` make, `<leader>Sd` doctrine, `<leader>Sr` routes, `<leader>Ss` services, `<leader>Se` config |
 | `<leader>C…` | Composer : `<leader>Ci` install, `<leader>Cu` update, `<leader>Cr` require, `<leader>Cd` dump-autoload |
 
@@ -435,26 +439,71 @@ directement ; une liste n'apparaît que s'il reste plusieurs choix réels.
 
 ---
 
-## 11. Tests et débogage
+## 11. JavaScript / TypeScript / Vue
+
+### La stack
+
+- **vtsls** : serveur TypeScript/JavaScript, y compris le `<script>` des `.vue` (plugin
+  TypeScript de Vue). Vérifié sur lama (Vue 2.7, sans `jsconfig.json`).
+- **vue_ls** : templates et styles Vue, en mode hybride avec vtsls.
+- **ESLint** (eslint-lsp) : diagnostics, et **corrections appliquées à l'enregistrement**
+  (sauf si `<leader>uf` / `<leader>uF` a coupé le formatage). Sur un projet sans Prettier
+  (lama), c'est ESLint qui « formate », comme dans PhpStorm.
+- **Prettier** : seulement si le projet a une config Prettier (`.prettierrc*`,
+  `prettier.config.*` ou clé `prettier` du `package.json`). Jamais de formatage par le LSP.
+- **cssls**, **html** : CSS/SCSS/LESS et HTML.
+
+Les outils du projet (`node_modules/.bin` : jest, prettier…) tournent **dans le conteneur
+Node** s'il y en a un. Pour lama, c'est le conteneur `php` : Node et yarn y sont installés
+par nvm, détecté tout seul (`:Projet` → « Outils node : php → /var/app/lama, via nvm »).
+
+### Raccourcis
+
+| Raccourci | Action |
+| --------- | ------ |
+| `gd` / `gD` | Définition / définition **source** (le vrai code, pas le `.d.ts`) |
+| `gR` | Fichiers qui utilisent le fichier courant |
+| `<leader>cM` / `<leader>jla` | Ajouter les imports manquants |
+| `<leader>jlo` / `<leader>jlu` | Organiser / retirer les imports inutilisés |
+| `<leader>cD` | Corriger tous les diagnostics TS |
+| `<leader>jle` | Corriger tous les problèmes ESLint |
+| `<leader>jlr` | Renommer le fichier (les imports suivent) |
+| `<leader>jt…` | Tests Jest/Vitest (§12) |
+| `<leader>jni` / `<leader>yi` … | npm / yarn (install, run, test, build, dev) dans un terminal flottant |
+| `<leader>jcl` … | `console.log` / `error` / `warn` / `info` |
+| `<leader>vs` / `<leader>v3` | Modèles de composant Vue (Options / Composition API) |
+
+Dans un `package.json`, les versions installées et les dernières s'affichent à côté des
+dépendances ; `<leader>jpu` met à jour, `<leader>jpd` supprime, `<leader>jpv` change de
+version.
+
+> `<leader>jc` (modèle de composant) est aussi le début de `<leader>jcl`… : il attend une
+> demi-seconde avant de partir.
+
+---
+
+## 12. Tests et débogage
 
 ### Tests (neotest)
 
-PHPUnit et Pest du projet, **dans le conteneur** si le projet est dockerisé : neotest le
-lance via `bin/docker-test`, qui traduit les chemins et rapatrie le rapport. Seuls les
-fichiers ouverts sont analysés (pas tout le dépôt).
+PHPUnit et Pest (PHP), Jest et Vitest (JS) du projet, **dans le conteneur** si le projet est
+dockerisé : neotest les lance via `bin/docker-test`, qui traduit les chemins et rapatrie le
+rapport. Seuls les fichiers ouverts sont analysés (pas tout le dépôt).
 
-| Raccourci     | Action                     |
-| ------------- | -------------------------- |
-| `<leader>ptn` | Test le plus proche        |
-| `<leader>pta` | Tous les tests du fichier  |
-| `<leader>pts` | Panneau résumé             |
-| `<leader>pto` | Sortie du test             |
+| PHP           | JS            | Action                     |
+| ------------- | ------------- | -------------------------- |
+| `<leader>ptn` | `<leader>jtn` | Test le plus proche        |
+| `<leader>pta` | `<leader>jta` | Tous les tests du fichier  |
+| `<leader>pts` | `<leader>jts` | Panneau résumé             |
+| `<leader>pto` | `<leader>jto` | Sortie du test             |
+|               | `<leader>jtw` | Surveiller (relance à chaque modification) |
 
 ### Débogage (nvim-dap)
 
 1. **Point d'arrêt** : `<leader>db` (**persistant** : il survit au redémarrage),
    `<leader>dB` conditionnel. En PHP, `<leader>pdb` / `<leader>pdB` font de même.
-2. **Lancer** : `<leader>dc`. En PHP, la configuration « Listen for Xdebug » écoute le
+2. **Lancer** : `<leader>dc`. En JS/TS : « Launch Node.js Program », « Attach to Node.js
+   Process » ou « Debug Jest Tests » (js-debug-adapter). En PHP, « Listen for Xdebug » écoute le
    port 9003 ; déclencher ensuite la requête ou la commande avec Xdebug actif. Projet
    dockerisé : la correspondance des chemins conteneur ↔ hôte est posée d'office.
 3. **Avancer** : `<leader>dO` pas suivant, `<leader>di` entrer, `<leader>do` sortir,
@@ -465,7 +514,7 @@ fichiers ouverts sont analysés (pas tout le dépôt).
 
 ---
 
-## 12. Config par projet : le dossier `.nvim/`
+## 13. Config par projet : le dossier `.nvim/`
 
 Un dossier **`.nvim/`** à la racine d'un projet active plusieurs comportements :
 
@@ -500,7 +549,7 @@ return {
 
 ---
 
-## 13. Claude : IA et agents parallèles
+## 14. Claude : IA et agents parallèles
 
 ### a) Lancement ponctuel (onglet terminal)
 
@@ -542,7 +591,7 @@ Travailler sur plusieurs branches en même temps, avec **un Claude dédié à ch
 
 ---
 
-## 14. Entretien de la config
+## 15. Entretien de la config
 
 - **Où** : branche `sans-lazyvim` du dépôt nvim-config, montée en worktree dans
   `~/dotfiles/neovimanu/.config/neovimanu` (`~/.config/neovimanu` y pointe).
@@ -572,7 +621,7 @@ Travailler sur plusieurs branches en même temps, avec **un Claude dédié à ch
 
 ---
 
-## 15. Ajouter un langage
+## 16. Ajouter un langage
 
 Un langage = un fichier `lua/manu/lang/<langage>.lua`, requis à la fin de `init.lua`.
 Modèle : `lua/manu/lang/lua.lua`, dans cet ordre :
@@ -611,7 +660,7 @@ Puis : raccourcis propres au langage dans une section `(buffer)` de `KEYMAPS.md`
 
 ---
 
-## 16. Dépannage
+## 17. Dépannage
 
 | Symptôme                                   | À vérifier                                                     |
 | ------------------------------------------ | -------------------------------------------------------------- |
@@ -628,4 +677,6 @@ Puis : raccourcis propres au langage dans une section `(buffer)` de `KEYMAPS.md`
 | `gd` ne trouve pas une classe en XML       | Le namespace est-il dans l'`autoload` PSR-4 du `composer.json` ? |
 | Twig : fonctions de l'appli inconnues      | Projet dockerisé : `.nvim/docker.lua` présent, conteneur lancé ? |
 | Un test PHP ne se lance pas                | Conteneur en marche ? `phpunit.xml(.dist)` à la racine ?       |
+| Rien ne se corrige à l'enregistrement en JS | ESLint attaché ? (`:Projet`, `<leader>cl`) Le projet a-t-il une config ESLint et son `node_modules` ? |
+| `gd` ne suit pas un import par alias (webpack) | Sans `jsconfig.json` (`compilerOptions.paths`), vtsls ne connaît pas les alias |
 | Santé générale                             | `:checkhealth`                                                 |

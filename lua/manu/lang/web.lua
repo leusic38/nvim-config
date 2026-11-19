@@ -364,7 +364,7 @@ vim.pack.add({
   "https://github.com/vuki656/package-info.nvim",
 }, { confirm = false })
 require("package-info").setup({
-  colors = { up_to_date = "#3C4048", outdated = "#d19a66" },
+  highlights = { up_to_date = { fg = "#3C4048" }, outdated = { fg = "#d19a66" } },
   icons = { enable = true, style = { up_to_date = "|  ", outdated = "|  " } },
   autostart = true,
   hide_up_to_date = false,
