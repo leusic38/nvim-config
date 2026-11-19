@@ -480,6 +480,11 @@ version.
 > `<leader>jc` (modèle de composant) est aussi le début de `<leader>jcl`… : il attend une
 > demi-seconde avant de partir.
 
+**Imports par alias webpack** (`Theia/…`, `lamaAlert`…) : vtsls ne les connaît que par un
+`jsconfig.json` avec `compilerOptions.paths`. `bin/jsconfig-from-webpack <projet> [--vue2]`
+le génère depuis `webpack.config.js` (pour lama : fait, gardé local via
+`.git/info/exclude`). À relancer avec `--force` quand les alias changent.
+
 ---
 
 ## 12. Tests et débogage
@@ -678,5 +683,5 @@ Puis : raccourcis propres au langage dans une section `(buffer)` de `KEYMAPS.md`
 | Twig : fonctions de l'appli inconnues      | Projet dockerisé : `.nvim/docker.lua` présent, conteneur lancé ? |
 | Un test PHP ne se lance pas                | Conteneur en marche ? `phpunit.xml(.dist)` à la racine ?       |
 | Rien ne se corrige à l'enregistrement en JS | ESLint attaché ? (`:Projet`, `<leader>cl`) Le projet a-t-il une config ESLint et son `node_modules` ? |
-| `gd` ne suit pas un import par alias (webpack) | Sans `jsconfig.json` (`compilerOptions.paths`), vtsls ne connaît pas les alias |
+| `gd` ne suit pas un import par alias (webpack) | Générer un `jsconfig.json` depuis les alias : `~/.config/neovimanu/bin/jsconfig-from-webpack <projet> [--vue2]` (fait pour lama, exclu via `.git/info/exclude`) |
 | Santé générale                             | `:checkhealth`                                                 |

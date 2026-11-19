@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+// Génère un jsconfig.json à partir des alias webpack (resolve.alias) d'un projet, pour que
+// vtsls / vue_ls suivent les imports par alias (`gd` sur `import x from 'Theia/…'`).
+//
+// Usage : jsconfig-from-webpack [dossier du projet] [--vue2]
+//   --vue2 : ajoute vueCompilerOptions.target = 2.7 (projet Vue 2.7).
+// Écrit <projet>/jsconfig.json (n'écrase pas un fichier existant sans --force).
+const fs = require("fs");
+const path = require("path");
+
+const args = process.argv.slice(2);
+const root = path.resolve(args.find((a) => !a.startsWith("--")) || ".");
+const vue2 = args.includes("--vue2");
+const force = args.includes("--force");
+const out = path.join(root, "jsconfig.json");
+
+if (fs.existsSync(out) && !force) {
+  console.error(`${out} existe déjà (--force pour l'écraser).`);
+  process.exit(1);
+}
+
+process.chdir(root);
+const loaded = require(path.join(root, "webpack.config.js"));
+const configs = Array.isArray(loaded) ? loaded : [loaded];
+
+const paths = {};
+for (const cfg of configs) {
+  const alias = (cfg.resolve && cfg.resolve.alias) || {};
+  for (const [rawKey, value] of Object.entries(alias)) {
+    if (typeof value !== "string") continue;
+    const key = rawKey.replace(/\$$/, ""); // « vue$ » : correspondance exacte
+    const target = path.relative(root, path.resolve(root, value));
+    let stat;
+    try {
+      stat = fs.statSync(path.resolve(root, value));
+    } catch {
+      continue; // alias vers un paquet (ex. « query-builder ») : résolu par node_modules
+    }
+    if (stat.isDirectory()) {
+      paths[key] = [target];
+      paths[`${key}/*`] = [`${target}/*`];
+    } else {
+      paths[key] = [target];
+    }
+  }
+}
+
+const jsconfig = {
+  // Généré par neovimanu (bin/jsconfig-from-webpack) depuis webpack.config.js.
+  compilerOptions: {
+    baseUrl: ".",
+    paths,
+    module: "ESNext",
+    moduleResolution: "Bundler",
+    target: "ES2020",
+    allowJs: true,
+    checkJs: false,
+  },
+  include: ["vue/**/*", "src/**/*.js", "src/**/*.vue", "web/theiajs/**/*", "tests/**/*"],
+  exclude: ["node_modules", "vendor", "var", "web/build", "web/bundles"],
+};
+if (vue2) jsconfig.vueCompilerOptions = { target: 2.7 };
+
+fs.writeFileSync(out, JSON.stringify(jsconfig, null, 2) + "\n");
+console.log(`${out} : ${Object.keys(paths).length} chemins d'alias.`);
