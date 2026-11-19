@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Outil de test (PHPUnit, Pest, Jest, Vitest) dans le conteneur du projet, pour neotest.
+#
+# Usage : docker-test HOST_ROOT SERVICE CONTAINER_ROOT SETUP OUTIL [arguments…]
+#   SETUP : « nvm » pour charger Node via nvm avant l'outil (lama : Node dans l'image php),
+#           « - » sinon.
+#
+# Les adaptateurs neotest appellent « OUTIL … --log-junit=/tmp/xxx » (PHPUnit, Pest) ou
+# « --outputFile=/tmp/xxx » (Jest, Vitest) avec des chemins hôte, puis lisent ce rapport. Le
+# conteneur ne voit ni /tmp de l'hôte, ni les chemins hôte. Ce script :
+#   * traduit les arguments qui sont des chemins sous HOST_ROOT en chemins conteneur ;
+#   * écrit le rapport dans <projet>/var/ (monté dans le conteneur), puis le recopie à
+#     l'emplacement demandé, chemins du rapport retraduits vers l'hôte ;
+#   * rend le code de sortie de l'outil.
+# Appelé par lua/manu/lang/php.lua et lua/manu/lang/web.lua (même convention que
+# bin/twiggy-php).
+
+set -u
+
+host_root=$1
+service=$2
+container_root=$3
+setup=$4
+shift 4
+
+report_host=""
+tmp_name="neotest-report-$$"
+args=()
+for arg in "$@"; do
+  case "$arg" in
+    --log-junit=*)
+      report_host=${arg#--log-junit=}
+      args+=("--log-junit=$container_root/var/$tmp_name")
+      ;;
+    --outputFile=*)
+      report_host=${arg#--outputFile=}
+      args+=("--outputFile=$container_root/var/$tmp_name")
+      ;;
+    "$host_root"/*)
+      args+=("$container_root${arg#"$host_root"}")
+      ;;
+    *)
+      args+=("$arg")
+      ;;
+  esac
+done
+
+mkdir -p "$host_root/var"
+cd "$host_root" || exit 1
+if [ "$setup" = nvm ]; then
+  docker compose exec -T -w "$container_root" "$service" \
+    bash -c '. "$NVM_DIR/nvm.sh" >/dev/null && exec "$@"' manu "${args[@]}"
+else
+  docker compose exec -T -w "$container_root" "$service" "${args[@]}"
+fi
+status=$?
+
+if [ -n "$report_host" ] && [ -f "$host_root/var/$tmp_name" ]; then
+  # Les chemins du rapport (file="…") redeviennent des chemins hôte pour neotest.
+  sed "s#$container_root/#$host_root/#g" "$host_root/var/$tmp_name" > "$report_host"
+  rm -f "$host_root/var/$tmp_name"
+fi
+exit $status

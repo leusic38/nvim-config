@@ -440,7 +440,7 @@ directement ; une liste n'apparaît que s'il reste plusieurs choix réels.
 ### Tests (neotest)
 
 PHPUnit et Pest du projet, **dans le conteneur** si le projet est dockerisé : neotest le
-lance via `bin/docker-phpunit`, qui traduit les chemins et rapatrie le rapport. Seuls les
+lance via `bin/docker-test`, qui traduit les chemins et rapatrie le rapport. Seuls les
 fichiers ouverts sont analysés (pas tout le dépôt).
 
 | Raccourci     | Action                     |

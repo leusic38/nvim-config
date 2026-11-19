@@ -256,6 +256,105 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+-- ─── Tests : Jest et Vitest (neotest) ──────────────────────────────────────
+-- Outil du projet (node_modules/.bin), dans le conteneur Node s'il y en a un (lama :
+-- conteneur php avec Node via nvm), via bin/docker-test qui traduit les chemins et rapatrie
+-- le rapport JSON.
+
+vim.pack.add({
+  "https://github.com/nvim-neotest/neotest-jest",
+  "https://github.com/marilari88/neotest-vitest",
+}, { confirm = false })
+
+local config_dir = vim.fn.stdpath("config")
+
+--- Commande de test (chaîne : les adaptateurs la découpent sur les espaces).
+---@param tool "jest"|"vitest"
+function M.test_command(tool, path)
+  local root = vim.fs.root(path or vim.api.nvim_buf_get_name(0), { "package.json" }) or assert(vim.uv.cwd())
+  local rel = project.node_bin(root, tool) or ("node_modules/.bin/" .. tool)
+  local docker = project.docker(root, "node")
+  if not docker then
+    return root .. "/" .. rel
+  end
+  -- Conteneur arrêté : échec explicite (le message de project.cmd dit comment le démarrer).
+  if not project.cmd(root, {}, "node") then
+    return "false"
+  end
+  return table.concat({
+    config_dir .. "/bin/docker-test", root, docker.service, docker.container_root, docker.setup and "nvm" or "-", rel,
+  }, " ")
+end
+
+local function package_root(path)
+  return vim.fs.root(path, { "package.json" }) or assert(vim.uv.cwd())
+end
+
+local test = require("manu.test")
+test.add_adapter(require("neotest-jest")({
+  jestCommand = function(path)
+    return M.test_command("jest", path)
+  end,
+  jestConfigFile = function(path)
+    local found = vim.fs.find({ "jest.config.js", "jest.config.ts", "jest.config.mjs", "jest.config.cjs" }, {
+      path = vim.fs.dirname(path),
+      upward = true,
+    })[1]
+    return found or (package_root(path) .. "/jest.config.js")
+  end,
+  env = { CI = "true" },
+  cwd = function(path)
+    return package_root(path)
+  end,
+}))
+test.add_adapter(require("neotest-vitest")({
+  vitestCommand = function(path)
+    return M.test_command("vitest", path)
+  end,
+  filter_dir = function(name)
+    return name ~= "node_modules"
+  end,
+  cwd = function(path)
+    return package_root(path)
+  end,
+}))
+
+-- ─── Débogage Node (js-debug-adapter, sur l'hôte) ──────────────────────────
+
+require("manu.mason").ensure({ "js-debug-adapter" })
+local debug = require("manu.debug")
+local js_debug = vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js"
+for _, adapter in ipairs({ "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }) do
+  debug.adapter(adapter, {
+    type = "server",
+    host = "localhost",
+    port = "${port}",
+    executable = { command = "node", args = { js_debug, "${port}" } },
+  })
+end
+local node_configs = function()
+  return {
+    {
+      type = "pwa-node", request = "launch", name = "Launch Node.js Program",
+      program = "${file}", cwd = "${workspaceFolder}", sourceMaps = true, skipFiles = { "<node_internals>/**" },
+    },
+    {
+      type = "pwa-node", request = "attach", name = "Attach to Node.js Process",
+      processId = require("dap.utils").pick_process, cwd = "${workspaceFolder}", sourceMaps = true,
+      skipFiles = { "<node_internals>/**" },
+    },
+    {
+      type = "pwa-node", request = "launch", name = "Debug Jest Tests", runtimeExecutable = "node",
+      runtimeArgs = { "./node_modules/jest/bin/jest.js", "--runInBand" }, rootPath = "${workspaceFolder}",
+      cwd = "${workspaceFolder}", console = "integratedTerminal", internalConsoleOptions = "neverOpen",
+      skipFiles = { "<node_internals>/**" },
+    },
+  }
+end
+for _, ft in ipairs({ "javascript", "typescript", "vue" }) do
+  debug.defaults(ft, node_configs)
+end
+
 -- ─── Raccourcis JS / TS / Vue (buffer, perso) ──────────────────────────────
 
 vim.api.nvim_create_autocmd("FileType", {
@@ -265,6 +364,50 @@ vim.api.nvim_create_autocmd("FileType", {
     local function bmap(lhs, rhs, desc)
       vim.keymap.set("n", lhs, rhs, { buffer = ev.buf, desc = desc })
     end
+    local function neotest()
+      return require("neotest")
+    end
+    local function dap()
+      return require("dap")
+    end
+    -- Tests
+    bmap("<leader>jta", function()
+      neotest().run.run(vim.fn.expand("%"))
+    end, "JS : tests du fichier")
+    bmap("<leader>jtn", function()
+      neotest().run.run()
+    end, "JS : test au curseur")
+    bmap("<leader>jts", function()
+      neotest().summary.toggle()
+    end, "JS : résumé des tests")
+    bmap("<leader>jto", function()
+      neotest().output.open({ enter = true })
+    end, "JS : sortie du test")
+    bmap("<leader>jtw", function()
+      neotest().watch.toggle(vim.fn.expand("%"))
+    end, "JS : surveiller les tests du fichier")
+    -- Débogage
+    bmap("<leader>jdb", function()
+      require("persistent-breakpoints.api").toggle_breakpoint()
+    end, "JS : point d'arrêt")
+    bmap("<leader>jdc", function()
+      dap().continue()
+    end, "JS : continuer")
+    bmap("<leader>jds", function()
+      dap().step_over()
+    end, "JS : pas suivant")
+    bmap("<leader>jdi", function()
+      dap().step_into()
+    end, "JS : entrer")
+    bmap("<leader>jdo", function()
+      dap().step_out()
+    end, "JS : sortir")
+    bmap("<leader>jdr", function()
+      dap().repl.open()
+    end, "JS : REPL")
+    bmap("<leader>jdl", function()
+      dap().run_last()
+    end, "JS : relancer la dernière session")
     bmap("<leader>jle", function()
       if not M.eslint_fix(ev.buf) then
         vim.notify("ESLint n'est pas attaché à ce buffer (pas de config ESLint ?)", vim.log.levels.WARN)

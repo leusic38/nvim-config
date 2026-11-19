@@ -208,7 +208,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 local config_dir = vim.fn.stdpath("config")
 
---- Commande PHPUnit / Pest pour neotest. Dockerisé : bin/docker-phpunit traduit les chemins
+--- Commande PHPUnit / Pest pour neotest. Dockerisé : bin/docker-test traduit les chemins
 --- et rapatrie le rapport JUnit ; conteneur arrêté : échec explicite, pas de repli hôte.
 ---@param tool "phpunit"|"pest"
 local function test_cmd(tool)
@@ -223,7 +223,7 @@ local function test_cmd(tool)
       local msg = ("Conteneur %s arrêté : docker compose up -d %s"):format(docker.service, docker.service)
       return { "sh", "-c", "echo " .. vim.fn.shellescape(msg) .. " >&2; exit 1" }
     end
-    return { config_dir .. "/bin/docker-phpunit", root, docker.service, docker.container_root, rel }
+    return { config_dir .. "/bin/docker-test", root, docker.service, docker.container_root, "-", rel }
   end
 end
 local test = require("manu.test")

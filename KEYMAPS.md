@@ -464,7 +464,7 @@ Affichée par `nn` seul ou `nn <dossier>` (Neovim se place alors dans le dossier
 
 ## PHP (buffer)
 
-Tests : PHPUnit/Pest du projet, dans le conteneur (`bin/docker-phpunit`).
+Tests : PHPUnit/Pest du projet, dans le conteneur (`bin/docker-test`).
 Xdebug : port 9003 ; projet dockerisé → correspondance des chemins conteneur ↔ hôte automatique.
 Formatage à l'enregistrement : php-cs-fixer si le projet a `.php-cs-fixer(.dist).php`.
 Analyse à l'enregistrement : PHPStan si le projet a `phpstan(.dist).neon`. Les deux tournent
@@ -533,6 +533,8 @@ Sur un fichier PHP d'un projet avec `composer.json`, dans le conteneur s'il y en
 
 ## JavaScript / TypeScript / Vue (buffer)
 
+Tests : Jest/Vitest du projet (`node_modules/.bin`), dans le conteneur Node s'il y en a un
+(lama : conteneur php, Node via nvm). Débogage : js-debug-adapter, sur l'hôte.
 Serveurs : vtsls (JS/TS, et le `<script>` des `.vue`), vue_ls (templates Vue), ESLint
 (corrections appliquées à l'enregistrement, sauf formatage coupé par `<leader>uf`/`<leader>uF`).
 Touches posées à l'attache de vtsls (elles remplacent `gD` « déclaration » de lsp.lua) :
@@ -551,6 +553,18 @@ Touches posées à l'attache de vtsls (elles remplacent `gD` « déclaration » 
 | `<leader>jla` | n | Ajouter les imports manquants | lua/manu/lang/web.lua |
 | `<leader>jlr` | n | Renommer le fichier (comme `<leader>cR`) | lua/manu/lang/web.lua |
 | `<leader>jle` | n | Corriger tous les problèmes ESLint | lua/manu/lang/web.lua |
+| `<leader>jta` | n | Tests du fichier (Jest/Vitest) | lua/manu/lang/web.lua |
+| `<leader>jtn` | n | Test au curseur | lua/manu/lang/web.lua |
+| `<leader>jts` | n | Résumé des tests | lua/manu/lang/web.lua |
+| `<leader>jto` | n | Sortie du test | lua/manu/lang/web.lua |
+| `<leader>jtw` | n | Surveiller les tests du fichier | lua/manu/lang/web.lua |
+| `<leader>jdb` | n | Point d'arrêt | lua/manu/lang/web.lua |
+| `<leader>jdc` | n | Continuer | lua/manu/lang/web.lua |
+| `<leader>jds` | n | Pas suivant | lua/manu/lang/web.lua |
+| `<leader>jdi` | n | Entrer | lua/manu/lang/web.lua |
+| `<leader>jdo` | n | Sortir | lua/manu/lang/web.lua |
+| `<leader>jdr` | n | REPL | lua/manu/lang/web.lua |
+| `<leader>jdl` | n | Relancer la dernière session | lua/manu/lang/web.lua |
 | `<leader>vc` | n | Vue : actions de code | lua/manu/lang/web.lua |
 | `<leader>vr` | n | Vue : renommer | lua/manu/lang/web.lua |
 | `<leader>vs` | n | Vue : modèle SFC (Options API) | lua/manu/lang/web.lua |

@@ -1,4 +1,4 @@
--- Tests (neotest : PHPUnit, Pest, dans le conteneur via bin/docker-phpunit) et phpactor.
+-- Tests (neotest : PHPUnit, Pest, dans le conteneur via bin/docker-test) et phpactor.
 -- Débogage : nvim-dap, interface, points d'arrêt persistants, Xdebug.
 local t = require("helpers")
 local project = require("manu.project")
@@ -35,9 +35,9 @@ project.container_running = function()
 end
 local described = table.concat(project.describe(), "\n")
 project.container_running = running
-t.ok(described:find(cfg .. "/bin/docker-phpunit " .. proj .. " php /var/app/x bin/phpunit", 1, true), "dockerisé : bin/docker-phpunit avec le phpunit du projet")
+t.ok(described:find(cfg .. "/bin/docker-test " .. proj .. " php /var/app/x - bin/phpunit", 1, true), "dockerisé : bin/docker-test avec le phpunit du projet")
 
--- bin/docker-phpunit avec un faux docker : arguments traduits, rapport rapatrié.
+-- bin/docker-test avec un faux docker : arguments traduits, rapport rapatrié.
 vim.fn.writefile({
   "#!/bin/sh",
   'echo "$@" > "' .. tmp .. '/docker-args"',
@@ -46,17 +46,17 @@ vim.fn.writefile({
 }, tmp .. "/fakebin/docker")
 vim.uv.fs_chmod(tmp .. "/fakebin/docker", tonumber("755", 8))
 local res = vim.system({
-  cfg .. "/bin/docker-phpunit", proj, "php", "/var/app/x", "bin/phpunit",
+  cfg .. "/bin/docker-test", proj, "php", "/var/app/x", "-", "bin/phpunit",
   "--log-junit=" .. tmp .. "/report.xml", proj .. "/tests/ATest.php", "--filter", "testA",
 }, { env = { PATH = tmp .. "/fakebin:" .. vim.env.PATH }, text = true }):wait()
 t.eq(res.code, 3, "code de sortie de l'outil rendu")
 local args = vim.fn.readfile(tmp .. "/docker-args")[1] or ""
 t.ok(args:find("compose exec %-T %-w /var/app/x php bin/phpunit"), "docker compose exec dans le conteneur")
 t.ok(args:find("/var/app/x/tests/ATest.php", 1, true), "fichier de test traduit")
-t.ok(args:find("--log-junit=/var/app/x/var/neotest-junit-", 1, true), "rapport écrit dans var/ du projet")
+t.ok(args:find("--log-junit=/var/app/x/var/neotest-report-", 1, true), "rapport écrit dans var/ du projet")
 t.ok(args:find("--filter testA", 1, true), "--filter intact")
 local rep = table.concat(vim.fn.readfile(tmp .. "/report.xml"), "")
-t.ok(rep:find(proj .. "/var/neotest-junit-", 1, true), "rapport rapatrié, chemins retraduits vers l'hôte")
+t.ok(rep:find(proj .. "/var/neotest-report-", 1, true), "rapport rapatrié, chemins retraduits vers l'hôte")
 
 -- phpactor
 t.eq(vim.fn.exists(":PhpactorContextMenu"), 2, ":PhpactorContextMenu existe")

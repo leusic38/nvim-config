@@ -77,6 +77,10 @@
       "rev": "27bf921498043f7ecd821d6db68d05de244bbd02",
       "src": "https://github.com/nvim-neotest/neotest"
     },
+    "neotest-jest": {
+      "rev": "0e7979d51301dfae5ef839d771bd28cf593fde3f",
+      "src": "https://github.com/nvim-neotest/neotest-jest"
+    },
     "neotest-pest": {
       "rev": "3388a5f00001303020ce885e18007ccd1835212c",
       "src": "https://github.com/V13Axel/neotest-pest"
@@ -84,6 +88,10 @@
     "neotest-phpunit": {
       "rev": "40e53c4294726a16f34f1a383a94c570553c6d46",
       "src": "https://github.com/olimorris/neotest-phpunit"
+    },
+    "neotest-vitest": {
+      "rev": "b0c265743c877058068dbc40d104ea5d40e6b257",
+      "src": "https://github.com/marilari88/neotest-vitest"
     },
     "nvim-dap": {
       "rev": "cfa2d58f4537aca6ca83e2de1a0d9f1491121264",
